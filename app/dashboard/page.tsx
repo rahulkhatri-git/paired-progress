@@ -96,6 +96,23 @@ export default function DashboardPage() {
     }
   }, [user, authLoading, router])
 
+  // Show loading while auth is being checked
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mb-3 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Don't render dashboard if no user
+  if (!user) {
+    return null
+  }
+
   const weekDates = getWeekDates(weekOffset)
   const today = new Date().toISOString().split('T')[0]
 
