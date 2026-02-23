@@ -304,39 +304,38 @@ export default function DashboardPage() {
           <EmptyAllDone />
         ) : emptyPreview === "no-reviews" ? (
           <EmptyNoPendingReviews />
+        ) : YOUR_HABITS.length === 0 ? (
+          <EmptyNoHabits onCreateHabit={() => setCreateHabitOpen(true)} />
         ) : (
           /* Default dashboard with habit columns */
-          YOUR_HABITS.length === 0 ? (
-            <EmptyNoHabits onCreateHabit={() => setCreateHabitOpen(true)} />
-          ) : (
           <div className="grid gap-6 md:grid-cols-2">
-          {/* Your habits */}
-          <section>
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-foreground">Your Habits</h2>
-              <span className="text-xs font-medium text-muted-foreground">
-                {YOUR_HABITS.filter((h) => h.completed).length}/{YOUR_HABITS.length} done
-              </span>
-            </div>
-            <div className="flex flex-col gap-3">
-              {YOUR_HABITS.map((habit) => (
-                <HabitCard key={habit.id} habit={habit} onLog={handleLog} />
-              ))}
-            </div>
-          </section>
+            {/* Your habits */}
+            <section>
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-bold text-foreground">Your Habits</h2>
+                <span className="text-xs font-medium text-muted-foreground">
+                  {YOUR_HABITS.filter((h) => h.completed).length}/{YOUR_HABITS.length} done
+                </span>
+              </div>
+              <div className="flex flex-col gap-3">
+                {YOUR_HABITS.map((habit) => (
+                  <HabitCard key={habit.id} habit={habit} onLog={handleLog} />
+                ))}
+              </div>
+            </section>
 
-          {/* Partner habits - TODO: will be implemented in Phase 2 */}
-          <section>
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-foreground">Partner's Habits</h2>
-              <span className="text-xs font-medium text-muted-foreground">
-                Coming soon
-              </span>
-            </div>
-            <EmptyNoPartner />
-          </section>
-        </div>
-          )}
+            {/* Partner habits - TODO: will be implemented in Phase 2 */}
+            <section>
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-bold text-foreground">Partner's Habits</h2>
+                <span className="text-xs font-medium text-muted-foreground">
+                  Coming soon
+                </span>
+              </div>
+              <EmptyNoPartner />
+            </section>
+          </div>
+        )}
       </main>
 
       {/* FAB */}
