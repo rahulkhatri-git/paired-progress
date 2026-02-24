@@ -22,7 +22,7 @@ interface AuthModalProps {
 }
 
 export function AuthModal({ open, onOpenChange, onSuccess }: AuthModalProps) {
-  const [mode, setMode] = useState<"login" | "signup">("signup")
+  const [mode, setMode] = useState<"login" | "signup">("login")
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Camera, ImageIcon, X, Loader2 } from "lucide-react"
+import { X, Loader2, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,11 +21,12 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useHabits } from "@/lib/hooks/useHabits"
-import type { HabitType, PriorityLevel } from "@/lib/types/habits"
+import type { PriorityLevel } from "@/lib/types/habits"
 
-interface CreateHabitModalProps {
+interface EditHabitModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  habitId: string | null
 }
 
 const UNITS = ["steps", "minutes", "pages", "servings", "glasses", "hours", "reps", "km", "miles"]
@@ -39,12 +40,12 @@ const DAYS_OF_WEEK = [
   { key: "Su", label: "Sun", index: 6 },
 ]
 
-export function CreateHabitModal({ open, onOpenChange }: CreateHabitModalProps) {
-  const { createHabit } = useHabits()
+export function EditHabitModal({ open, onOpenChange, habitId }: EditHabitModalProps) {
+  const { habits, updateHabit, deleteHabit } = useHabits()
   const [loading, setLoading] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
-  const [type, setType] = useState<HabitType | null>(null)
   const [bronzeValue, setBronzeValue] = useState("")
   const [silverValue, setSilverValue] = useState("")
   const [goldValue, setGoldValue] = useState("")
@@ -54,7 +55,31 @@ export function CreateHabitModal({ open, onOpenChange }: CreateHabitModalProps) 
   const [requiresPhoto, setRequiresPhoto] = useState(false)
   const [priority, setPriority] = useState<PriorityLevel>("medium")
   const [whyText, setWhyText] = useState("")
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+
+  const habit = habits.find((h) => h.id === habitId)
+
+  useEffect(() => {
+    if (habit && open) {
+      setName(habit.name)
+      setDescription(habit.description || "")
+      setBronzeValue(habit.bronze_target?.toString() || "")
+      setSilverValue(habit.silver_target?.toString() || "")
+      setGoldValue(habit.gold_target?.toString() || "")
+      setUnit(habit.unit || "")
+      setPriority(habit.priority || "medium")
+      setRequiresPhoto(habit.requires_photo || false)
+      setShareWithPartner(habit.is_shared ?? true)
+      setWhyText(habit.why_statement || "")
+      
+      // Convert active_days array to selected day keys
+      if (habit.active_days && Array.isArray(habit.active_days)) {
+        const selected = DAYS_OF_WEEK
+          .filter((day, idx) => habit.active_days[idx])
+          .map((day) => day.key)
+        setSelectedDays(selected)
+      }
+    }
+  }, [habit, open])
 
   function toggleDay(key: string) {
     setSelectedDays((prev) =>
@@ -62,55 +87,34 @@ export function CreateHabitModal({ open, onOpenChange }: CreateHabitModalProps) 
     )
   }
 
-  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = () => setPhotoPreview(reader.result as string)
-      reader.readAsDataURL(file)
-    }
-  }
-
-  function resetForm() {
-    setName("")
-    setDescription("")
-    setType(null)
-    setBronzeValue("")
-    setSilverValue("")
-    setGoldValue("")
-    setUnit("")
-    setSelectedDays(["M", "T", "W", "Th", "F"])
-    setShareWithPartner(true)
-    setRequiresPhoto(false)
-    setPriority("medium")
-    setWhyText("")
-    setPhotoPreview(null)
-  }
-
   async function handleSubmit() {
-    if (!canSubmit || !type) return
+    if (!habitId || !name.trim() || !habit) return
 
     setLoading(true)
     try {
       const activeDays = DAYS_OF_WEEK.map((day) => selectedDays.includes(day.key))
 
-      const habit = await createHabit({
+      const updates: any = {
+        id: habitId,
         name,
         description: description || undefined,
-        type,
-        bronze_target: type === "tiered" ? parseInt(bronzeValue) || undefined : undefined,
-        silver_target: type === "tiered" ? parseInt(silverValue) || undefined : undefined,
-        gold_target: type === "tiered" ? parseInt(goldValue) || undefined : undefined,
-        unit: type === "tiered" ? unit || undefined : undefined,
         priority,
         requires_photo: requiresPhoto,
         is_shared: shareWithPartner,
         why_statement: whyText || undefined,
         active_days: activeDays,
-      })
+      }
 
-      if (habit) {
-        resetForm()
+      if (habit.type === "tiered") {
+        updates.bronze_target = parseInt(bronzeValue) || undefined
+        updates.silver_target = parseInt(silverValue) || undefined
+        updates.gold_target = parseInt(goldValue) || undefined
+        updates.unit = unit || undefined
+      }
+
+      const result = await updateHabit(updates)
+      
+      if (result) {
         onOpenChange(false)
       }
     } finally {
@@ -118,13 +122,31 @@ export function CreateHabitModal({ open, onOpenChange }: CreateHabitModalProps) 
     }
   }
 
-  const canSubmit = name.trim() && type
+  async function handleDelete() {
+    if (!habitId) return
+    
+    if (!confirm("Are you sure you want to delete this habit? This action cannot be undone.")) {
+      return
+    }
+
+    setDeleting(true)
+    try {
+      const success = await deleteHabit(habitId)
+      if (success) {
+        onOpenChange(false)
+      }
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  if (!habit) return null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Create New Habit</DialogTitle>
+          <DialogTitle>Edit Habit</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col gap-5">
@@ -132,18 +154,18 @@ export function CreateHabitModal({ open, onOpenChange }: CreateHabitModalProps) 
           <section className="flex flex-col gap-3">
             <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Basic Info</p>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="habit-name">Habit name *</Label>
+              <Label htmlFor="edit-habit-name">Habit name *</Label>
               <Input
-                id="habit-name"
+                id="edit-habit-name"
                 placeholder="e.g., Morning Workout"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="habit-desc">Description</Label>
+              <Label htmlFor="edit-habit-desc">Description</Label>
               <Textarea
-                id="habit-desc"
+                id="edit-habit-desc"
                 placeholder="What does success look like?"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -152,52 +174,24 @@ export function CreateHabitModal({ open, onOpenChange }: CreateHabitModalProps) 
             </div>
           </section>
 
-          {/* Habit type */}
+          {/* Habit type (read-only) */}
           <section className="flex flex-col gap-3">
-            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Habit Type *</p>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => setType("binary")}
-                className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all ${
-                  type === "binary"
-                    ? "border-primary bg-primary/5 shadow-sm"
-                    : "border-border/60 bg-card hover:border-border"
-                }`}
-              >
-                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${type === "binary" ? "bg-primary/10" : "bg-muted"}`}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={type === "binary" ? "text-primary" : "text-muted-foreground"}>
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                </div>
-                <span className="text-sm font-semibold text-foreground">Binary</span>
-                <span className="text-xs text-muted-foreground">Simple yes/no</span>
-              </button>
-              <button
-                onClick={() => setType("tiered")}
-                className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all ${
-                  type === "tiered"
-                    ? "border-primary bg-primary/5 shadow-sm"
-                    : "border-border/60 bg-card hover:border-border"
-                }`}
-              >
-                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${type === "tiered" ? "bg-primary/10" : "bg-muted"}`}>
-                  <span className="text-lg">{"\ud83c\udfc6"}</span>
-                </div>
-                <span className="text-sm font-semibold text-foreground">Tiered</span>
-                <span className="text-xs text-muted-foreground">Bronze / Silver / Gold</span>
-              </button>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Habit Type</p>
+            <div className="rounded-lg border border-border/60 bg-muted/20 p-3 text-sm text-muted-foreground">
+              {habit.type === "binary" ? "Binary (Yes/No)" : "Tiered (Bronze/Silver/Gold)"}
+              <span className="ml-2 text-xs">(cannot be changed)</span>
             </div>
           </section>
 
           {/* Tiered configuration */}
-          {type === "tiered" && (
+          {habit.type === "tiered" && (
             <section className="flex flex-col gap-3 rounded-xl border border-border/60 bg-muted/20 p-4">
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tier Values</p>
               <div className="flex flex-col gap-2.5">
                 {[
-                  { medal: "\ud83e\udd49", label: "Bronze", value: bronzeValue, setter: setBronzeValue },
-                  { medal: "\ud83e\udd48", label: "Silver", value: silverValue, setter: setSilverValue },
-                  { medal: "\ud83e\udd47", label: "Gold", value: goldValue, setter: setGoldValue },
+                  { medal: "🥉", label: "Bronze", value: bronzeValue, setter: setBronzeValue },
+                  { medal: "🥈", label: "Silver", value: silverValue, setter: setSilverValue },
+                  { medal: "🥇", label: "Gold", value: goldValue, setter: setGoldValue },
                 ].map((tier) => (
                   <div key={tier.label} className="flex items-center gap-2">
                     <span className="w-6 text-center text-base">{tier.medal}</span>
@@ -225,7 +219,6 @@ export function CreateHabitModal({ open, onOpenChange }: CreateHabitModalProps) 
                   </SelectContent>
                 </Select>
               </div>
-              <p className="text-xs text-muted-foreground">Bronze maintains your streak</p>
             </section>
           )}
 
@@ -257,12 +250,12 @@ export function CreateHabitModal({ open, onOpenChange }: CreateHabitModalProps) 
           <section className="flex flex-col gap-3">
             <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Accountability</p>
             <div className="flex items-center justify-between">
-              <Label htmlFor="share-partner" className="cursor-pointer text-sm">Share with partner</Label>
-              <Switch id="share-partner" checked={shareWithPartner} onCheckedChange={setShareWithPartner} />
+              <Label htmlFor="edit-share-partner" className="cursor-pointer text-sm">Share with partner</Label>
+              <Switch id="edit-share-partner" checked={shareWithPartner} onCheckedChange={setShareWithPartner} />
             </div>
             <div className="flex items-center justify-between">
-              <Label htmlFor="photo-proof" className="cursor-pointer text-sm">Requires photo proof</Label>
-              <Switch id="photo-proof" checked={requiresPhoto} onCheckedChange={setRequiresPhoto} />
+              <Label htmlFor="edit-photo-proof" className="cursor-pointer text-sm">Requires photo proof</Label>
+              <Switch id="edit-photo-proof" checked={requiresPhoto} onCheckedChange={setRequiresPhoto} />
             </div>
             <div className="flex flex-col gap-2">
               <Label>Priority</Label>
@@ -297,49 +290,50 @@ export function CreateHabitModal({ open, onOpenChange }: CreateHabitModalProps) 
               onChange={(e) => setWhyText(e.target.value)}
               className="min-h-[80px] resize-none"
             />
-            {photoPreview ? (
-              <div className="relative">
-                <img src={photoPreview} alt="Motivation" className="h-32 w-full rounded-lg object-cover" />
-                <button
-                  onClick={() => setPhotoPreview(null)}
-                  className="absolute right-2 top-2 rounded-full bg-foreground/60 p-1 text-background"
-                  aria-label="Remove photo"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ) : (
-              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted/30 py-6 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/50">
-                <Camera className="h-4 w-4" />
-                Upload motivation photo
-                <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
-              </label>
-            )}
-            <p className="text-xs text-muted-foreground">Your partner will see this</p>
           </section>
 
           {/* Actions */}
-          <div className="flex gap-3 border-t border-border/60 pt-4">
-            <Button 
-              variant="outline" 
-              className="flex-1" 
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
+          <div className="flex flex-col gap-3 border-t border-border/60 pt-4">
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                className="flex-1" 
+                onClick={() => onOpenChange(false)}
+                disabled={loading || deleting}
+              >
+                Cancel
+              </Button>
+              <Button 
+                className="flex-1" 
+                onClick={handleSubmit} 
+                disabled={!name.trim() || loading || deleting}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
+              </Button>
+            </div>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={loading || deleting}
+              className="w-full"
             >
-              Cancel
-            </Button>
-            <Button 
-              className="flex-1" 
-              onClick={handleSubmit} 
-              disabled={!canSubmit || loading}
-            >
-              {loading ? (
+              {deleting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  Deleting...
                 </>
               ) : (
-                "Create Habit"
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Habit
+                </>
               )}
             </Button>
           </div>

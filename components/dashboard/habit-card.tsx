@@ -1,5 +1,6 @@
 "use client"
 
+import { History } from "lucide-react"
 import { TierProgressBar } from "./tier-progress-bar"
 
 interface HabitDay {
@@ -25,33 +26,53 @@ interface HabitCardProps {
   habit: HabitCardData
   isPartner?: boolean
   onLog?: (id: string) => void
+  onEdit?: (id: string) => void
+  onViewHistory?: (id: string) => void
 }
 
-export function HabitCard({ habit, isPartner, onLog }: HabitCardProps) {
+export function HabitCard({ habit, isPartner, onLog, onEdit, onViewHistory }: HabitCardProps) {
   const completedGlow = habit.completed ? "ring-1 ring-primary/20 shadow-[0_0_12px_rgba(13,148,136,0.08)]" : ""
 
   return (
     <div
-      className={`rounded-xl border border-border/60 bg-card p-4 transition-all hover:shadow-md ${completedGlow}`}
+      onClick={() => !isPartner && onEdit && onEdit(habit.id)}
+      className={`rounded-xl border border-border/60 bg-card p-4 transition-all hover:shadow-md ${completedGlow} ${!isPartner && onEdit ? "cursor-pointer" : ""}`}
     >
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           {habit.emoji && <span className="text-lg">{habit.emoji}</span>}
           <h4 className="text-sm font-semibold text-foreground">{habit.name}</h4>
         </div>
-        {!isPartner && onLog && (
-          <button
-            onClick={() => onLog(habit.id)}
-            className="rounded-lg bg-primary/10 px-3 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
-          >
-            Log
-          </button>
-        )}
-        {isPartner && habit.completed && (
-          <span className="rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-            Done
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {!isPartner && onViewHistory && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onViewHistory(habit.id)
+              }}
+              className="rounded-lg bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              title="View log history"
+            >
+              <History className="h-3.5 w-3.5" />
+            </button>
+          )}
+          {!isPartner && onLog && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onLog(habit.id)
+              }}
+              className="rounded-lg bg-primary/10 px-3 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
+            >
+              Log
+            </button>
+          )}
+          {isPartner && habit.completed && (
+            <span className="rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+              Done
+            </span>
+          )}
+        </div>
       </div>
 
       {habit.type === "tiered" &&

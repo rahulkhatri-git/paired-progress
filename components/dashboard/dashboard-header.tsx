@@ -2,12 +2,16 @@
 
 import { ChevronLeft, ChevronRight, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { NotificationBell } from "./notification-bell"
+import type { NotificationData } from "./notification-stack"
 
 interface DashboardHeaderProps {
   weekLabel: string
   onPrevWeek: () => void
   onNextWeek: () => void
   onProfileClick: () => void
+  notifications: NotificationData[]
+  onDismissNotification: (id: string) => void
 }
 
 export function DashboardHeader({
@@ -15,6 +19,8 @@ export function DashboardHeader({
   onPrevWeek,
   onNextWeek,
   onProfileClick,
+  notifications,
+  onDismissNotification,
 }: DashboardHeaderProps) {
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-card/95 backdrop-blur-md">
@@ -67,17 +73,23 @@ export function DashboardHeader({
           </Button>
         </div>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9 rounded-full"
-          onClick={onProfileClick}
-          aria-label="Profile"
-        >
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-            <User className="h-4 w-4 text-primary" />
-          </div>
-        </Button>
+        <div className="flex items-center gap-2">
+          <NotificationBell 
+            notifications={notifications}
+            onDismiss={onDismissNotification}
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 rounded-full"
+            onClick={onProfileClick}
+            aria-label="Profile"
+          >
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+              <User className="h-4 w-4 text-primary" />
+            </div>
+          </Button>
+        </div>
       </div>
     </header>
   )

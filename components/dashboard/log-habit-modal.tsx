@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, Camera, ImageIcon, Upload, Loader2 } from "lucide-react"
+import { X, Camera, ImageIcon, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -41,16 +41,18 @@ const MOODS = [
 ]
 
 export function LogHabitModal({ open, onOpenChange, habitId, habits }: LogHabitModalProps) {
-  const { createLog } = useHabitLogs()
+  const { createLog, updateLog, deleteLog } = useHabitLogs()
   const { habits: allHabits } = useHabits()
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [selectedHabitId, setSelectedHabitId] = useState<string>("")
   const [value, setValue] = useState("")
   const [mood, setMood] = useState<EmotionType | null>(null)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [tierReached, setTierReached] = useState<TierAchieved>("none")
+  const [existingLog, setExistingLog] = useState<any>(null)
 
   useEffect(() => {
     if (habitId) setSelectedHabitId(habitId)
@@ -58,6 +60,33 @@ export function LogHabitModal({ open, onOpenChange, habitId, habits }: LogHabitM
 
   const selectedHabit = habits.find((h) => h.id === selectedHabitId)
   const fullHabit = allHabits.find((h) => h.id === selectedHabitId)
+
+  // Check if there's an existing log for today
+  useEffect(() => {
+    async function checkExistingLog() {
+      if (!selectedHabitId || !open) return
+      
+      const today = new Date().toISOString().split('T')[0]
+      const { data, error } = await supabase
+        .from('habit_logs')
+        .select('*')
+        .eq('habit_id', selectedHabitId)
+        .eq('log_date', today)
+        .maybeSingle()
+      
+      if (data) {
+        setExistingLog(data)
+        if (data.value) setValue(data.value.toString())
+        if (data.emotion) setMood(data.emotion)
+        if (data.photo_url) setPhotoPreview(data.photo_url)
+        if (data.tier_achieved) setTierReached(data.tier_achieved)
+      } else {
+        setExistingLog(null)
+      }
+    }
+    
+    checkExistingLog()
+  }, [selectedHabitId, open, supabase])
 
   useEffect(() => {
     if (selectedHabit?.type === "tiered" && value && fullHabit) {
@@ -84,6 +113,26 @@ export function LogHabitModal({ open, onOpenChange, habitId, habits }: LogHabitM
     setPhotoFile(null)
     setPhotoPreview(null)
     setTierReached("none")
+    setExistingLog(null)
+  }
+
+  async function handleDelete() {
+    if (!existingLog?.id) return
+    
+    if (!confirm("Are you sure you want to delete this log?")) {
+      return
+    }
+
+    setDeleting(true)
+    try {
+      const success = await deleteLog(existingLog.id)
+      if (success) {
+        resetForm()
+        onOpenChange(false)
+      }
+    } finally {
+      setDeleting(false)
+    }
   }
 
   async function uploadPhoto(file: File, userId: string): Promise<string | null> {
@@ -93,9 +142,20 @@ export function LogHabitModal({ open, onOpenChange, habitId, habits }: LogHabitM
       
       const { data, error } = await supabase.storage
         .from('habit-photos')
-        .upload(fileName, file)
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        })
 
-      if (error) throw error
+      if (error) {
+        console.error('Storage upload error:', error)
+        if (error.message.includes('not found') || error.message.includes('does not exist')) {
+          toast.error('Storage bucket not configured. Please create "habit-photos" bucket in Supabase.')
+        } else {
+          toast.error(`Upload failed: ${error.message}`)
+        }
+        throw error
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from('habit-photos')
@@ -104,7 +164,6 @@ export function LogHabitModal({ open, onOpenChange, habitId, habits }: LogHabitM
       return publicUrl
     } catch (error: any) {
       console.error('Error uploading photo:', error)
-      toast.error('Failed to upload photo')
       return null
     }
   }
@@ -123,6 +182,9 @@ export function LogHabitModal({ open, onOpenChange, habitId, habits }: LogHabitM
           const url = await uploadPhoto(photoFile, user.id)
           if (url) photoUrl = url
         }
+      } else if (photoPreview && existingLog?.photo_url) {
+        // Keep existing photo if no new photo uploaded
+        photoUrl = existingLog.photo_url
       }
 
       const logData: any = {
@@ -139,7 +201,14 @@ export function LogHabitModal({ open, onOpenChange, habitId, habits }: LogHabitM
         logData.completed = true
       }
 
-      const result = await createLog(logData)
+      let result
+      if (existingLog) {
+        // Update existing log
+        result = await updateLog(existingLog.id, logData)
+      } else {
+        // Create new log
+        result = await createLog(logData)
+      }
       
       if (result) {
         resetForm()
@@ -184,7 +253,7 @@ export function LogHabitModal({ open, onOpenChange, habitId, habits }: LogHabitM
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Log Habit</DialogTitle>
+          <DialogTitle>{existingLog ? "Edit Habit Log" : "Log Habit"}</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col gap-5">
@@ -347,13 +416,40 @@ export function LogHabitModal({ open, onOpenChange, habitId, habits }: LogHabitM
           )}
 
           {/* Actions */}
-          <div className="flex gap-3 pt-2">
-            <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button className="flex-1" onClick={handleSubmit} disabled={!selectedHabitId}>
-              Log Habit
-            </Button>
+          <div className="flex flex-col gap-3 pt-2">
+            <div className="flex gap-3">
+              <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)} disabled={loading || deleting}>
+                Cancel
+              </Button>
+              <Button className="flex-1" onClick={handleSubmit} disabled={!selectedHabitId || loading || deleting}>
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {existingLog ? "Updating..." : "Logging..."}
+                  </>
+                ) : (
+                  <>{existingLog ? "Update Log" : "Log Habit"}</>
+                )}
+              </Button>
+            </div>
+            
+            {existingLog && (
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={loading || deleting}
+                className="w-full"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete This Log"
+                )}
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>
