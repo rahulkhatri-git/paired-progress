@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select"
 import { useHabits } from "@/lib/hooks/useHabits"
 import type { PriorityLevel } from "@/lib/types/habits"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 interface EditHabitModalProps {
   open: boolean
@@ -56,6 +57,7 @@ export function EditHabitModal({ open, onOpenChange, habitId, onSuccess }: EditH
   const [requiresPhoto, setRequiresPhoto] = useState(false)
   const [priority, setPriority] = useState<PriorityLevel>("medium")
   const [whyText, setWhyText] = useState("")
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const habit = habits.find((h) => h.id === habitId)
 
@@ -126,10 +128,6 @@ export function EditHabitModal({ open, onOpenChange, habitId, onSuccess }: EditH
 
   async function handleDelete() {
     if (!habitId) return
-    
-    if (!confirm("Are you sure you want to delete this habit? This action cannot be undone.")) {
-      return
-    }
 
     setDeleting(true)
     try {
@@ -323,7 +321,7 @@ export function EditHabitModal({ open, onOpenChange, habitId, onSuccess }: EditH
             </div>
             <Button
               variant="destructive"
-              onClick={handleDelete}
+              onClick={() => setShowDeleteConfirm(true)}
               disabled={loading || deleting}
               className="w-full"
             >
@@ -342,6 +340,17 @@ export function EditHabitModal({ open, onOpenChange, habitId, onSuccess }: EditH
           </div>
         </div>
       </DialogContent>
+
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Delete this habit?"
+        description="This will permanently delete the habit and all its logs. This action cannot be undone."
+        confirmLabel="Delete Habit"
+        cancelLabel="Cancel"
+        variant="destructive"
+        onConfirm={handleDelete}
+      />
     </Dialog>
   )
 }

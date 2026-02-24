@@ -25,6 +25,7 @@ import { createClient } from "@/lib/supabase/client"
 import { calculateTierAchieved } from "@/lib/utils/habits"
 import type { EmotionType, TierAchieved } from "@/lib/types/habits"
 import { toast } from "sonner"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 interface LogHabitModalProps {
   open: boolean
@@ -54,6 +55,7 @@ export function LogHabitModal({ open, onOpenChange, habitId, habits, onSuccess }
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [tierReached, setTierReached] = useState<TierAchieved>("none")
   const [existingLog, setExistingLog] = useState<any>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   useEffect(() => {
     if (habitId) setSelectedHabitId(habitId)
@@ -120,10 +122,6 @@ export function LogHabitModal({ open, onOpenChange, habitId, habits, onSuccess }
   async function handleDelete() {
     if (!existingLog?.id) return
     
-    if (!confirm("Are you sure you want to delete this log?")) {
-      return
-    }
-
     setDeleting(true)
     try {
       const success = await deleteLog(existingLog.id)
@@ -494,7 +492,7 @@ export function LogHabitModal({ open, onOpenChange, habitId, habits, onSuccess }
             {existingLog && (
               <Button
                 variant="destructive"
-                onClick={handleDelete}
+                onClick={() => setShowDeleteConfirm(true)}
                 disabled={loading || deleting}
                 className="w-full"
               >
@@ -511,6 +509,17 @@ export function LogHabitModal({ open, onOpenChange, habitId, habits, onSuccess }
           </div>
         </div>
       </DialogContent>
+
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Delete this log?"
+        description="This action cannot be undone. The habit will be marked as not completed for today."
+        confirmLabel="Delete Log"
+        cancelLabel="Cancel"
+        variant="destructive"
+        onConfirm={handleDelete}
+      />
     </Dialog>
   )
 }
