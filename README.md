@@ -113,11 +113,16 @@ paired-progress/
 
 **Status: READY FOR PRODUCTION** 🚀
 
-### 🔜 Phase 2: Partner Features (NEXT)
-- [ ] Partner linking and invitations
-- [ ] Partner habit visibility
-- [ ] Review/approve workflow
-- [ ] Real-time updates
+### 🔄 Phase 2: Partner Features (IN PROGRESS - 40% Complete)
+- ✅ Partner invitations (6-character codes)
+- ✅ Partnership management (accept/unlink)
+- ✅ Shared vs private habits
+- ✅ Partner habit visibility
+- 🔄 Review/approve workflow (Next)
+- 🔄 Monthly points system (Next)
+- ⏸️ Real-time updates (Planned)
+
+**Current Status:** Database migration required. See `PHASE_2_STATUS.md` for details.
 
 ### Phase 3: Enhanced Features
 - Weekly summaries
