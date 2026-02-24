@@ -31,6 +31,7 @@ interface LogHabitModalProps {
   onOpenChange: (open: boolean) => void
   habitId: string | null
   habits: HabitCardData[]
+  onSuccess?: () => void
 }
 
 const MOODS = [
@@ -40,7 +41,7 @@ const MOODS = [
   { emoji: "\ud83d\udd25", label: "Amazing", value: "amazing" },
 ]
 
-export function LogHabitModal({ open, onOpenChange, habitId, habits }: LogHabitModalProps) {
+export function LogHabitModal({ open, onOpenChange, habitId, habits, onSuccess }: LogHabitModalProps) {
   const { createLog, updateLog, deleteLog } = useHabitLogs()
   const { habits: allHabits } = useHabits()
   const supabase = createClient()
@@ -129,6 +130,7 @@ export function LogHabitModal({ open, onOpenChange, habitId, habits }: LogHabitM
       if (success) {
         resetForm()
         onOpenChange(false)
+        onSuccess?.()
       }
     } finally {
       setDeleting(false)
@@ -213,6 +215,7 @@ export function LogHabitModal({ open, onOpenChange, habitId, habits }: LogHabitM
       if (result) {
         resetForm()
         onOpenChange(false)
+        onSuccess?.()
       }
     } finally {
       setLoading(false)

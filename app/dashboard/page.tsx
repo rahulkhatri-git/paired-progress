@@ -48,8 +48,8 @@ type DashboardView = "dashboard" | "review" | "summary" | "profile"
 export default function DashboardPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
-  const { habits, loading: habitsLoading } = useHabits()
-  const { logs, loading: logsLoading } = useHabitLogs()
+  const { habits, loading: habitsLoading, refetch: refetchHabits } = useHabits()
+  const { logs, loading: logsLoading, refetch: refetchLogs } = useHabitLogs()
   const [logModalOpen, setLogModalOpen] = useState(false)
   const [logHabitId, setLogHabitId] = useState<string | null>(null)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -325,6 +325,10 @@ export default function DashboardPage() {
         onOpenChange={setLogModalOpen}
         habitId={logHabitId}
         habits={YOUR_HABITS}
+        onSuccess={() => {
+          refetchHabits()
+          refetchLogs()
+        }}
       />
 
       <ChallengeModal
@@ -335,12 +339,18 @@ export default function DashboardPage() {
       <CreateHabitModal
         open={createHabitOpen}
         onOpenChange={setCreateHabitOpen}
+        onSuccess={() => {
+          refetchHabits()
+        }}
       />
 
       <EditHabitModal
         open={editModalOpen}
         onOpenChange={setEditModalOpen}
         habitId={editHabitId}
+        onSuccess={() => {
+          refetchHabits()
+        }}
       />
 
       <LogHistoryModal

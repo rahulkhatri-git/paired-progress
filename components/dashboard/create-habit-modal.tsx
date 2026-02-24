@@ -26,6 +26,7 @@ import type { HabitType, PriorityLevel } from "@/lib/types/habits"
 interface CreateHabitModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  onSuccess?: () => void
 }
 
 const UNITS = ["steps", "minutes", "pages", "servings", "glasses", "hours", "reps", "km", "miles"]
@@ -39,7 +40,7 @@ const DAYS_OF_WEEK = [
   { key: "Su", label: "Sun", index: 6 },
 ]
 
-export function CreateHabitModal({ open, onOpenChange }: CreateHabitModalProps) {
+export function CreateHabitModal({ open, onOpenChange, onSuccess }: CreateHabitModalProps) {
   const { createHabit } = useHabits()
   const [loading, setLoading] = useState(false)
   const [name, setName] = useState("")
@@ -112,6 +113,7 @@ export function CreateHabitModal({ open, onOpenChange }: CreateHabitModalProps) 
       if (habit) {
         resetForm()
         onOpenChange(false)
+        onSuccess?.()
       }
     } finally {
       setLoading(false)

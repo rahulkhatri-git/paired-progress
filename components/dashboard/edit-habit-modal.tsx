@@ -27,6 +27,7 @@ interface EditHabitModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   habitId: string | null
+  onSuccess?: () => void
 }
 
 const UNITS = ["steps", "minutes", "pages", "servings", "glasses", "hours", "reps", "km", "miles"]
@@ -40,7 +41,7 @@ const DAYS_OF_WEEK = [
   { key: "Su", label: "Sun", index: 6 },
 ]
 
-export function EditHabitModal({ open, onOpenChange, habitId }: EditHabitModalProps) {
+export function EditHabitModal({ open, onOpenChange, habitId, onSuccess }: EditHabitModalProps) {
   const { habits, updateHabit, deleteHabit } = useHabits()
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -116,6 +117,7 @@ export function EditHabitModal({ open, onOpenChange, habitId }: EditHabitModalPr
       
       if (result) {
         onOpenChange(false)
+        onSuccess?.()
       }
     } finally {
       setLoading(false)
@@ -134,6 +136,7 @@ export function EditHabitModal({ open, onOpenChange, habitId }: EditHabitModalPr
       const success = await deleteHabit(habitId)
       if (success) {
         onOpenChange(false)
+        onSuccess?.()
       }
     } finally {
       setDeleting(false)
