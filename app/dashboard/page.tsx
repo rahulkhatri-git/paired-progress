@@ -247,16 +247,16 @@ export default function DashboardPage() {
           <EmptyNoHabits onCreateHabit={() => setCreateHabitOpen(true)} />
         ) : (
           /* Default dashboard with habit columns */
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-[1fr_auto]">
             {/* Your habits */}
-            <section className={partnerSectionCollapsed ? "md:col-span-2" : ""}>
+            <section className={partnerSectionCollapsed ? "" : "md:col-span-1"}>
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-bold text-foreground">Your Habits</h2>
                 <span className="text-xs font-medium text-muted-foreground">
                   {YOUR_HABITS.filter((h) => h.completed).length}/{YOUR_HABITS.length} done
                 </span>
               </div>
-              <div className={`grid gap-3 ${partnerSectionCollapsed ? "md:grid-cols-2" : ""}`}>
+              <div className={`grid gap-3 ${partnerSectionCollapsed ? "md:grid-cols-2 lg:grid-cols-3" : ""}`}>
                 {YOUR_HABITS.map((habit) => (
                   <HabitCard 
                     key={habit.id} 
@@ -269,9 +269,28 @@ export default function DashboardPage() {
               </div>
             </section>
 
-            {/* Partner habits - TODO: will be implemented in Phase 2 */}
-            {!partnerSectionCollapsed && (
-              <section>
+            {/* Partner habits - collapsed to side */}
+            {partnerSectionCollapsed ? (
+              <div className="hidden md:flex md:flex-col md:w-16 border-l border-border/60 pl-4">
+                <button
+                  onClick={() => setPartnerSectionCollapsed(false)}
+                  className="sticky top-24 flex flex-col items-center gap-2 rounded-lg border border-border/60 bg-card p-3 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  aria-label="Expand partner section"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="rotate-180">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                  <span className="text-[10px] font-medium [writing-mode:vertical-lr]">Partner</span>
+                </button>
+              </div>
+            ) : (
+              <section className="md:w-80 lg:w-96">
                 <div className="mb-4 flex items-center justify-between">
                   <h2 className="text-lg font-bold text-foreground">Partner's Habits</h2>
                   <div className="flex items-center gap-2">
@@ -284,28 +303,13 @@ export default function DashboardPage() {
                       aria-label="Collapse partner section"
                     >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="18 15 12 9 6 15" />
+                        <polyline points="9 18 15 12 9 6" />
                       </svg>
                     </button>
                   </div>
                 </div>
                 <EmptyNoPartner />
               </section>
-            )}
-
-            {/* Expand partner section button */}
-            {partnerSectionCollapsed && (
-              <div className="md:col-span-2">
-                <button
-                  onClick={() => setPartnerSectionCollapsed(false)}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 bg-muted/30 py-4 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                  Show Partner's Habits
-                </button>
-              </div>
             )}
           </div>
         )}
