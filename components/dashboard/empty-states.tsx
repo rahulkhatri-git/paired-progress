@@ -162,16 +162,6 @@ interface EmptyNoPartnerProps {
 }
 
 export function EmptyNoPartner({ onSendInvite, onAcceptInvite }: EmptyNoPartnerProps) {
-  const [copied, setCopied] = useState(false)
-  const inviteLink = "https://pairedprogress.app/invite/abc123"
-
-  function handleCopy() {
-    navigator.clipboard.writeText(inviteLink).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
-
   return (
     <EmptyShell>
       <PartnerIllustration />
@@ -183,13 +173,13 @@ export function EmptyNoPartner({ onSendInvite, onAcceptInvite }: EmptyNoPartnerP
         building habits side by side.
       </p>
       <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row">
-        <Button className="gap-2">
+        <Button onClick={onSendInvite} className="gap-2">
           <UserPlus className="h-4 w-4" />
           Send Invite
         </Button>
-        <Button variant="outline" className="gap-2" onClick={handleCopy}>
+        <Button variant="outline" className="gap-2" onClick={onAcceptInvite}>
           <Copy className="h-4 w-4" />
-          {copied ? "Copied!" : "Copy Link"}
+          Accept Invite
         </Button>
       </div>
     </EmptyShell>

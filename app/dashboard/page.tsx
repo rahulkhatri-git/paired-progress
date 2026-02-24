@@ -14,6 +14,8 @@ import { ProfileSettings } from "@/components/dashboard/profile-settings"
 import { CreateHabitModal } from "@/components/dashboard/create-habit-modal"
 import { EditHabitModal } from "@/components/dashboard/edit-habit-modal"
 import { LogHistoryModal } from "@/components/dashboard/log-history-modal"
+import { SendInviteModal } from "@/components/dashboard/send-invite-modal"
+import { AcceptInviteModal } from "@/components/dashboard/accept-invite-modal"
 import {
   EmptyNoHabits,
   EmptyNoPartner,
@@ -56,6 +58,8 @@ export default function DashboardPage() {
   const [editHabitId, setEditHabitId] = useState<string | null>(null)
   const [historyModalOpen, setHistoryModalOpen] = useState(false)
   const [historyHabitId, setHistoryHabitId] = useState<string | null>(null)
+  const [sendInviteOpen, setSendInviteOpen] = useState(false)
+  const [acceptInviteOpen, setAcceptInviteOpen] = useState(false)
   const [challengeOpen, setChallengeOpen] = useState(false)
   const [createHabitOpen, setCreateHabitOpen] = useState(false)
   const [view, setView] = useState<DashboardView>("dashboard")
@@ -308,7 +312,10 @@ export default function DashboardPage() {
                     </button>
                   </div>
                 </div>
-                <EmptyNoPartner />
+                <EmptyNoPartner 
+                  onSendInvite={() => setSendInviteOpen(true)}
+                  onAcceptInvite={() => setAcceptInviteOpen(true)}
+                />
               </section>
             )}
           </div>
@@ -361,6 +368,16 @@ export default function DashboardPage() {
         open={historyModalOpen}
         onOpenChange={setHistoryModalOpen}
         habitId={historyHabitId}
+      />
+
+      <SendInviteModal
+        open={sendInviteOpen}
+        onOpenChange={setSendInviteOpen}
+      />
+
+      <AcceptInviteModal
+        open={acceptInviteOpen}
+        onOpenChange={setAcceptInviteOpen}
       />
     </div>
   )
