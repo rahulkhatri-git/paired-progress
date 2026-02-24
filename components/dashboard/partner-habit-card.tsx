@@ -63,11 +63,15 @@ export function PartnerHabitCard({ habit, logs, partnerName }: PartnerHabitCardP
 
       {/* Header */}
       <div className="mb-3 flex items-start gap-3">
-        <div className="text-3xl">{habit.name}</div>
         <div className="flex-1">
-          <h3 className="font-semibold text-foreground line-clamp-2">
-            {habit.description || "No description"}
+          <h3 className="font-semibold text-foreground">
+            {habit.name}
           </h3>
+          {habit.description && (
+            <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+              {habit.description}
+            </p>
+          )}
         </div>
       </div>
 
