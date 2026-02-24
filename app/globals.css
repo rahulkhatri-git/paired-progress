@@ -123,6 +123,19 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Disable scroll-to-change on number inputs */
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"]:focus {
+    pointer-events: auto;
+  }
 }
 
 @keyframes jiggle {
