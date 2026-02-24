@@ -176,7 +176,7 @@ CREATE TABLE log_reviews (
 
 #### Point Calculation Logic:
 ```typescript
-// Points system
+// Points system (MONTHLY reset)
 const POINTS = {
   binary_complete: 10,
   bronze_tier: 10,
@@ -185,30 +185,32 @@ const POINTS = {
   streak_bonus_per_day: 2, // 2pts * streak days
   both_completed_bonus: 10, // When both partners complete same habit
   week_perfect_bonus: 50, // All habits done all week
+  month_perfect_bonus: 200, // All habits done all month
 }
 ```
 
 #### Database Changes:
 ```sql
--- New table: weekly_scores
-CREATE TABLE weekly_scores (
+-- New table: monthly_scores (changed from weekly_scores)
+CREATE TABLE monthly_scores (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID REFERENCES profiles(id),
-  week_start DATE NOT NULL,
+  month_start DATE NOT NULL,
   total_points INTEGER DEFAULT 0,
   logs_count INTEGER DEFAULT 0,
   streaks_count INTEGER DEFAULT 0,
   gold_tiers_count INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  CONSTRAINT unique_user_week UNIQUE (user_id, week_start)
+  CONSTRAINT unique_user_month UNIQUE (user_id, month_start)
 );
 ```
 
 #### UI Components:
-- `PointsBar` (already exists - needs point calculation)
-- `WeeklyLeaderboard` - Comparison view
+- `PointsBar` (already exists - needs monthly point calculation)
+- `MonthlyLeaderboard` - Full month comparison view
 - `AchievementBadge` - Show unlocked achievements
 - `PointsBreakdown` - Detailed score explanation
+- `MonthlyProgressChart` - Visual progress over the month
 
 ---
 
@@ -411,34 +413,52 @@ USING (
 
 ---
 
-## 🚀 Quick Start Checklist
+## 🚀 Testing Strategy
 
-Before starting Phase 2:
-- [ ] Push Phase 1 fixes to production
-- [ ] Test Phase 1 thoroughly with real users
-- [ ] Gather feedback on UX
-- [ ] Create partnerships.sql schema file
-- [ ] Plan API endpoints needed
-- [ ] Design partner profile UI
+### Phase 1 Testing (Internal - You & Co-founder)
+- **Goal**: Verify all features work end-to-end
+- **Duration**: 1 week of daily use
+- **Test Cases**:
+  - [ ] Create different habit types (binary & tiered)
+  - [ ] Log habits daily with photos
+  - [ ] Edit habits and logs
+  - [ ] View log history
+  - [ ] Test on mobile & desktop
+  - [ ] Test all notification flows
+  - [ ] Verify photo uploads work
+  - [ ] Test edge cases (delete, errors, etc.)
+
+### Phase 2 Testing (With Real Users - Couples)
+- **Goal**: Validate partner features with real accountability
+- **Duration**: 2-3 weeks with 2-3 test couples
+- **Test Cases**:
+  - [ ] Partner invitation flow
+  - [ ] Shared habit visibility
+  - [ ] Review & approve workflow
+  - [ ] Challenge & response flow
+  - [ ] Points calculation accuracy
+  - [ ] Real-time notification delivery
+  - [ ] Privacy controls work properly
+  - [ ] Monthly leaderboard display
+  - [ ] Gather UX feedback
+  - [ ] Identify pain points
+
+**After Phase 2 testing: Public beta launch!**
 
 ---
 
-## 💡 Open Questions
+## 💡 Design Decisions (CONFIRMED)
 
-1. **Multiple Partners**: Allow or one-at-a-time?
-   - Recommendation: Start with one, extend later
+1. **Multiple Partners**: ✅ **One partner only** - Keeps it simple and focused on couples
+   
+2. **Challenge Limits**: ✅ **Unlimited challenges** - Trust-based system, monitor for abuse later
 
-2. **Challenge Limits**: How many times can someone challenge?
-   - Recommendation: Unlimited, but track history
+3. **Point Reset**: ✅ **Monthly leaderboard** - More substantial competition window
 
-3. **Point Reset**: Weekly or monthly?
-   - Recommendation: Weekly (more engaging)
-
-4. **Privacy Default**: Habits shared by default?
-   - Recommendation: Yes, but with toggle
-
-5. **Unlink**: What happens to past data?
-   - Recommendation: Keep data, but hide from ex-partner
+4. **Privacy Default**: ✅ **Shared by default** - Opt-out model for privacy
+   - New habits are shared unless explicitly marked private during creation
+   - Can toggle privacy in edit modal
+   - Encourages accountability by default
 
 ---
 
