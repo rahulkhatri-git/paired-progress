@@ -173,8 +173,8 @@ export function LogHabitModal({ open, onOpenChange, habitId, habits, onSuccess }
   async function handleSubmit() {
     if (!selectedHabitId || !fullHabit) return
 
-    // Validate photo requirement
-    if (fullHabit.requires_photo && !photoFile && !photoPreview) {
+    // Validate photo requirement (only if fullHabit is loaded)
+    if (fullHabit?.requires_photo && !photoFile && !photoPreview) {
       toast.error('Photo proof is required for this habit')
       return
     }
@@ -401,7 +401,7 @@ export function LogHabitModal({ open, onOpenChange, habitId, habits, onSuccess }
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <Label>Photo proof</Label>
-                  {fullHabit.requires_photo && (
+                  {fullHabit?.requires_photo && (
                     <span className="rounded-full bg-orange-500/10 px-2 py-0.5 text-xs font-medium text-orange-600">
                       Required
                     </span>
