@@ -173,6 +173,12 @@ export function LogHabitModal({ open, onOpenChange, habitId, habits, onSuccess }
   async function handleSubmit() {
     if (!selectedHabitId || !fullHabit) return
 
+    // Validate photo requirement
+    if (fullHabit.requires_photo && !photoFile && !photoPreview) {
+      toast.error('Photo proof is required for this habit')
+      return
+    }
+
     setLoading(true)
     try {
       let photoUrl: string | undefined = undefined
@@ -335,23 +341,72 @@ export function LogHabitModal({ open, onOpenChange, habitId, habits, onSuccess }
 
               {/* Binary confirmation */}
               {selectedHabit.type === "binary" && (
-                <div className="flex items-center justify-center rounded-lg border border-primary/20 bg-primary/5 p-6">
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    </div>
-                    <span className="text-sm font-medium text-foreground">
-                      Mark as completed
-                    </span>
+                <div className="rounded-lg border border-border/60 bg-card p-4">
+                  <div className="mb-3 text-sm font-medium text-foreground">
+                    Mark as {existingLog?.completed ? 'incomplete' : 'completed'}?
                   </div>
+                  <div className="flex items-center justify-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Toggle between completed/not completed for binary habits
+                        // This is just visual, actual state managed by existingLog
+                      }}
+                      className={`flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all ${
+                        !existingLog?.completed
+                          ? "border-primary bg-primary/5"
+                          : "border-border/40 bg-muted/20"
+                      }`}
+                    >
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      </div>
+                      <span className="text-xs font-medium text-foreground">
+                        Completed
+                      </span>
+                    </button>
+
+                    {existingLog && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // For editing existing log, allow marking as incomplete
+                          // by deleting the log instead
+                        }}
+                        className="flex flex-col items-center gap-2 rounded-lg border-2 border-border/40 bg-muted/20 p-4 transition-all hover:border-orange-500 hover:bg-orange-500/5"
+                      >
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                          </svg>
+                        </div>
+                        <span className="text-xs font-medium text-muted-foreground">
+                          Not Done
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                  {existingLog && (
+                    <p className="mt-3 text-center text-xs text-muted-foreground">
+                      To mark as incomplete, delete this log below
+                    </p>
+                  )}
                 </div>
               )}
 
               {/* Photo upload */}
               <div className="flex flex-col gap-2">
-                <Label>Photo proof</Label>
+                <div className="flex items-center justify-between">
+                  <Label>Photo proof</Label>
+                  {fullHabit.requires_photo && (
+                    <span className="rounded-full bg-orange-500/10 px-2 py-0.5 text-xs font-medium text-orange-600">
+                      Required
+                    </span>
+                  )}
+                </div>
                 {photoPreview ? (
                   <div className="relative">
                     <img
