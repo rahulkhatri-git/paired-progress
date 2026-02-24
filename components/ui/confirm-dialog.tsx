@@ -47,7 +47,7 @@ export function ConfirmDialog({
               onConfirm()
               onOpenChange(false)
             }}
-            className={variant === "destructive" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
+            className={variant === "destructive" ? "bg-destructive text-white hover:bg-destructive/90" : ""}
           >
             {confirmLabel}
           </AlertDialogAction>
