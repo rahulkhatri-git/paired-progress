@@ -156,7 +156,12 @@ export function EmptyNoHabits({ onCreateHabit }: { onCreateHabit: () => void }) 
 /* ================================================================== */
 /*  2. No Partner Linked                                              */
 /* ================================================================== */
-export function EmptyNoPartner() {
+interface EmptyNoPartnerProps {
+  onSendInvite?: () => void
+  onAcceptInvite?: () => void
+}
+
+export function EmptyNoPartner({ onSendInvite, onAcceptInvite }: EmptyNoPartnerProps) {
   const [copied, setCopied] = useState(false)
   const inviteLink = "https://pairedprogress.app/invite/abc123"
 
