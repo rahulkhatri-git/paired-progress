@@ -6,6 +6,7 @@ import { Plus } from "lucide-react"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { PointsBar } from "@/components/dashboard/points-bar"
 import { HabitCard } from "@/components/dashboard/habit-card"
+import { PartnerHabitCard } from "@/components/dashboard/partner-habit-card"
 import { LogHabitModal } from "@/components/dashboard/log-habit-modal"
 import { PartnerReview } from "@/components/dashboard/partner-review"
 import { ChallengeModal } from "@/components/dashboard/challenge-modal"
@@ -27,6 +28,8 @@ import type { HabitCardData } from "@/components/dashboard/habit-card"
 import { useAuth } from "@/lib/auth-context"
 import { useHabits } from "@/lib/hooks/useHabits"
 import { useHabitLogs } from "@/lib/hooks/useHabitLogs"
+import { usePartnership } from "@/lib/hooks/usePartnership"
+import { usePartnerHabits } from "@/lib/hooks/usePartnerHabits"
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
@@ -52,6 +55,12 @@ export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth()
   const { habits, loading: habitsLoading, refetch: refetchHabits } = useHabits()
   const { logs, loading: logsLoading, refetch: refetchLogs } = useHabitLogs()
+  const { partner, hasPartner, loading: partnershipLoading } = usePartnership()
+  const { 
+    habits: partnerHabits, 
+    logs: partnerLogs, 
+    loading: partnerHabitsLoading 
+  } = usePartnerHabits()
   const [logModalOpen, setLogModalOpen] = useState(false)
   const [logHabitId, setLogHabitId] = useState<string | null>(null)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -296,11 +305,19 @@ export default function DashboardPage() {
             ) : (
               <section className="md:w-80 lg:w-96">
                 <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-lg font-bold text-foreground">Partner's Habits</h2>
+                  <h2 className="text-lg font-bold text-foreground">
+                    {partner?.full_name || 'Partner'}'s Habits
+                  </h2>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-muted-foreground">
-                      Coming soon
-                    </span>
+                    {hasPartner && (
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {partnerHabits.filter((h) => {
+                          const today = new Date().toISOString().split('T')[0]
+                          const log = partnerLogs.find((l) => l.habit_id === h.id && l.log_date === today)
+                          return h.type === 'binary' ? log?.completed : (log?.tier_achieved && log.tier_achieved !== 'none')
+                        }).length}/{partnerHabits.length} done
+                      </span>
+                    )}
                     <button
                       onClick={() => setPartnerSectionCollapsed(true)}
                       className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
@@ -312,10 +329,24 @@ export default function DashboardPage() {
                     </button>
                   </div>
                 </div>
-                <EmptyNoPartner 
-                  onSendInvite={() => setSendInviteOpen(true)}
-                  onAcceptInvite={() => setAcceptInviteOpen(true)}
-                />
+                
+                {hasPartner && partnerHabits.length > 0 ? (
+                  <div className="grid gap-3">
+                    {partnerHabits.map((habit) => (
+                      <PartnerHabitCard
+                        key={habit.id}
+                        habit={habit}
+                        logs={partnerLogs}
+                        partnerName={partner?.full_name?.split(' ')[0] || 'Partner'}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyNoPartner 
+                    onSendInvite={() => setSendInviteOpen(true)}
+                    onAcceptInvite={() => setAcceptInviteOpen(true)}
+                  />
+                )}
               </section>
             )}
           </div>
