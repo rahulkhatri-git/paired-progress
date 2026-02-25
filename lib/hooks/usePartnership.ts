@@ -15,9 +15,6 @@ export function usePartnership() {
   const supabase = createClient()
 
   const fetchPartnership = async () => {
-    // #region agent log
-    fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:17',message:'fetchPartnership called',data:{hasUser:!!user,userId:user?.id},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
-    // #endregion
     if (!user) {
       setPartnership(null)
       setPartner(null)
@@ -35,10 +32,6 @@ export function usePartnership() {
         .eq('status', 'active')
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
         .single()
-      
-      // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:36',message:'partnership query result',data:{hasData:!!partnershipData,hasError:!!partnershipError,errorCode:partnershipError?.code,errorMessage:partnershipError?.message,dataId:partnershipData?.id},timestamp:Date.now(),hypothesisId:'H2,H5'})}).catch(()=>{});
-      // #endregion
 
       if (partnershipError) {
         if (partnershipError.code === 'PGRST116') {
@@ -101,9 +94,6 @@ export function usePartnership() {
         }
       }
     } catch (err: any) {
-      // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:91',message:'partnership fetch error caught',data:{errorMessage:err?.message,errorCode:err?.code,errorDetails:err?.details},timestamp:Date.now(),hypothesisId:'H8'})}).catch(()=>{});
-      // #endregion
       console.error('Error fetching partnership:', err)
       setError(err)
     } finally {
