@@ -96,7 +96,7 @@ export function SendInviteModal({ open, onOpenChange, onSuccess }: SendInviteMod
         {!invitation ? (
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="partner-email">Partner's Email</Label>
+              <Label htmlFor="partner-email">Partner's Email (Optional)</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -106,20 +106,15 @@ export function SendInviteModal({ open, onOpenChange, onSuccess }: SendInviteMod
                   className="pl-10"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  required
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                We'll send them an email with the invite link
+                Optional: Helps track who the invite is for
               </p>
             </div>
 
-            <Button 
-              onClick={handleCreateInvite} 
-              disabled={loading || !email.trim()} 
-              className="w-full"
-            >
-              {loading ? "Sending..." : "Send Invitation Email"}
+            <Button onClick={handleCreateInvite} disabled={loading} className="w-full">
+              {loading ? "Creating..." : "Generate Invite Link"}
             </Button>
           </div>
         ) : (

@@ -172,30 +172,8 @@ export function useInvitations() {
 
       if (error) throw error
 
-      // Send email if email provided
-      if (email) {
-        try {
-          const inviteUrl = `${window.location.origin}/?invite=${code}`
-          await fetch('/api/send-invite', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              inviterName: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Someone',
-              inviteeEmail: email,
-              inviteCode: code,
-              inviteUrl,
-            }),
-          })
-          toast.success('Invitation sent via email!')
-        } catch (emailError) {
-          console.error('Failed to send email:', emailError)
-          toast.success('Invitation created! (Email sending failed, share the code manually)')
-        }
-      } else {
-        toast.success('Invitation created!')
-      }
-
       setInvitations((prev) => [data, ...prev])
+      toast.success('Invitation created!')
       return data
     } catch (err: any) {
       console.error('Error creating invitation:', err)
