@@ -24,7 +24,18 @@ This will create:
 - `log_reviews` - approve/challenge workflow
 - `monthly_scores` - monthly point tracking
 
-### Step 3: Verify Setup
+### Step 3: Fix RLS Policies
+
+**CRITICAL**: Run these SQL scripts to fix RLS policies:
+
+1. Run `supabase/fix-profiles-rls.sql`:
+   - Updates the profiles table RLS policy to allow users to view their partner's profile
+   - **Without this, users cannot see their partner's name/info!**
+
+2. Run `supabase/fix-invitation-policy.sql`:
+   - Fixes the partner_invitations RLS policy to use the profiles table for email lookup
+
+### Step 4: Verify Setup
 
 Run this query to verify all tables exist:
 
@@ -37,7 +48,7 @@ AND table_name IN ('partnerships', 'partner_invitations', 'log_reviews', 'monthl
 
 You should see all 4 tables listed.
 
-### Step 4: Test Invitations
+### Step 5: Test Invitations
 
 1. Go to your deployed app
 2. Click "Send Invite" in the Partner section
@@ -54,7 +65,7 @@ You should see all 4 tables listed.
 - Partners can only view shared habits (not private ones)
 - Monthly scores reset automatically on the 1st of each month
 
-### Step 8: Verify in Supabase Dashboard
+### Step 6: Verify in Supabase Dashboard
 
 If you see "permission denied" errors:
 1. Check that RLS is enabled on all tables
