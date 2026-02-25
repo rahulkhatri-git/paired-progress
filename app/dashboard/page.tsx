@@ -61,6 +61,12 @@ export default function DashboardPage() {
     logs: partnerLogs, 
     loading: partnerHabitsLoading 
   } = usePartnerHabits()
+  
+  // #region agent log
+  useEffect(() => {
+    fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'dashboard/page.tsx:64',message:'dashboard partnership state',data:{hasPartner:hasPartner,partnerName:partner?.full_name,partnershipLoading:partnershipLoading,partnerHabitsCount:partnerHabits.length},timestamp:Date.now(),hypothesisId:'H3,H4'})}).catch(()=>{});
+  }, [hasPartner, partner, partnershipLoading, partnerHabits]);
+  // #endregion
   const [logModalOpen, setLogModalOpen] = useState(false)
   const [logHabitId, setLogHabitId] = useState<string | null>(null)
   const [editModalOpen, setEditModalOpen] = useState(false)

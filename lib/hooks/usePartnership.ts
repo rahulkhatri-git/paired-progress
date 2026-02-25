@@ -15,6 +15,9 @@ export function usePartnership() {
   const supabase = createClient()
 
   const fetchPartnership = async () => {
+    // #region agent log
+    fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:17',message:'fetchPartnership called',data:{hasUser:!!user,userId:user?.id},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
+    // #endregion
     if (!user) {
       setPartnership(null)
       setPartner(null)
@@ -32,13 +35,23 @@ export function usePartnership() {
         .eq('status', 'active')
         .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
         .single()
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:36',message:'partnership query result',data:{hasData:!!partnershipData,hasError:!!partnershipError,errorCode:partnershipError?.code,errorMessage:partnershipError?.message,dataId:partnershipData?.id},timestamp:Date.now(),hypothesisId:'H2,H5'})}).catch(()=>{});
+      // #endregion
 
       if (partnershipError) {
         if (partnershipError.code === 'PGRST116') {
           // No partnership found - this is okay
+          // #region agent log
+          fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:42',message:'no partnership found (PGRST116)',data:{},timestamp:Date.now(),hypothesisId:'H5'})}).catch(()=>{});
+          // #endregion
           setPartnership(null)
           setPartner(null)
         } else {
+          // #region agent log
+          fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:49',message:'partnership query error',data:{errorCode:partnershipError.code,errorMessage:partnershipError.message},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+          // #endregion
           throw partnershipError
         }
       } else if (partnershipData) {
@@ -48,6 +61,10 @@ export function usePartnership() {
         const partnerId = partnershipData.user1_id === user.id 
           ? partnershipData.user2_id 
           : partnershipData.user1_id
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:60',message:'partnership found, fetching partner profile',data:{partnershipId:partnershipData.id,partnerId:partnerId,status:partnershipData.status},timestamp:Date.now(),hypothesisId:'H1,H5'})}).catch(()=>{});
+        // #endregion
 
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
@@ -56,6 +73,10 @@ export function usePartnership() {
           .single()
 
         if (profileError) throw profileError
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:72',message:'partner profile fetched',data:{partnerName:profileData?.full_name,partnerEmail:profileData?.email},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
+        // #endregion
 
         setPartner({
           ...profileData,
