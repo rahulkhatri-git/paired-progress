@@ -63,7 +63,7 @@ export function usePartnership() {
           : partnershipData.user1_id
         
         // #region agent log
-        fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:60',message:'partnership found, fetching partner profile',data:{partnershipId:partnershipData.id,partnerId:partnerId,status:partnershipData.status},timestamp:Date.now(),hypothesisId:'H1,H5'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:60',message:'partnership found, fetching partner profile',data:{partnershipId:partnershipData.id,partnerId:partnerId,currentUserId:user.id,user1_id:partnershipData.user1_id,user2_id:partnershipData.user2_id,status:partnershipData.status},timestamp:Date.now(),hypothesisId:'H1,H5,H9'})}).catch(()=>{});
         // #endregion
 
         const { data: profileData, error: profileError } = await supabase
