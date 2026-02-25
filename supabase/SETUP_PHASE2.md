@@ -54,7 +54,7 @@ You should see all 4 tables listed.
 - Partners can only view shared habits (not private ones)
 - Monthly scores reset automatically on the 1st of each month
 
-### Troubleshooting
+### Step 8: Verify in Supabase Dashboard
 
 If you see "permission denied" errors:
 1. Check that RLS is enabled on all tables
