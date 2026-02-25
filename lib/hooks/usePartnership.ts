@@ -54,36 +54,22 @@ export function usePartnership() {
         const partnerId = partnershipData.user1_id === user.id 
           ? partnershipData.user2_id 
           : partnershipData.user1_id
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:60',message:'partnership found, fetching partner profile',data:{partnershipId:partnershipData.id,partnerId:partnerId,currentUserId:user.id,user1_id:partnershipData.user1_id,user2_id:partnershipData.user2_id,status:partnershipData.status},timestamp:Date.now(),hypothesisId:'H1,H5,H9'})}).catch(()=>{});
-        // #endregion
 
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('id, full_name, email, avatar_url')
           .eq('id', partnerId)
           .maybeSingle()
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:75',message:'profile query result',data:{hasData:!!profileData,hasError:!!profileError,errorCode:profileError?.code,errorMessage:profileError?.message},timestamp:Date.now(),hypothesisId:'H6,H7'})}).catch(()=>{});
-        // #endregion
 
         if (profileError) throw profileError
         
         if (profileData) {
-          // #region agent log
-          fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:84',message:'partner profile found',data:{partnerName:profileData.full_name,partnerEmail:profileData.email},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
-          // #endregion
           setPartner({
             ...profileData,
             partnership_since: partnershipData.accepted_at || partnershipData.created_at,
           })
         } else {
           // Profile doesn't exist - use fallback data
-          // #region agent log
-          fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:94',message:'profile missing, using fallback',data:{partnerId:partnerId},timestamp:Date.now(),hypothesisId:'H7'})}).catch(()=>{});
-          // #endregion
           setPartner({
             id: partnerId,
             full_name: 'Partner',
