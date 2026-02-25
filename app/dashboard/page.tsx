@@ -243,6 +243,7 @@ export default function DashboardPage() {
       {/* Split-screen habits */}
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 md:px-6">
         {/* Always show 2-column layout with partner section */}
+        <div className="grid gap-6 md:grid-cols-[1fr_auto]">
           {/* Your habits */}
           <section className={partnerSectionCollapsed ? "" : "md:col-span-1"}>
             <div className="mb-4 flex items-center justify-between">
