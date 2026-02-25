@@ -40,6 +40,8 @@ export function AcceptInviteModal({
       if (success) {
         onSuccess?.()
         onOpenChange(false)
+        // Force page reload to fetch partnership data
+        window.location.reload()
       }
     } finally {
       setLoading(false)

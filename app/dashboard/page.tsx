@@ -393,6 +393,9 @@ export default function DashboardPage() {
       <AcceptInviteModal
         open={acceptInviteOpen}
         onOpenChange={setAcceptInviteOpen}
+        onSuccess={() => {
+          // Partnership accepted - page will reload automatically
+        }}
       />
     </div>
   )
