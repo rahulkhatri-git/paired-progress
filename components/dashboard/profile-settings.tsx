@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/lib/auth-context"
+import { usePartnership } from "@/lib/hooks/usePartnership"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 
@@ -31,6 +32,7 @@ interface ProfileSettingsProps {
 export function ProfileSettings({ onBack }: ProfileSettingsProps) {
   const router = useRouter()
   const { user, signOut } = useAuth()
+  const { partner, hasPartner, partnership } = usePartnership()
   const supabase = createClient()
   const [loading, setLoading] = useState(true)
   const [dailyReminders, setDailyReminders] = useState(true)
@@ -178,26 +180,34 @@ export function ProfileSettings({ onBack }: ProfileSettingsProps) {
           </div>
 
           {/* Partnership card */}
-          <div className="rounded-xl border border-border/60 bg-card p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/15 text-sm font-bold text-orange-600">
-                S
+          {hasPartner && partner && (
+            <div className="rounded-xl border border-border/60 bg-card p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/15 text-sm font-bold text-orange-600">
+                  {partner.full_name?.[0]?.toUpperCase() || 'P'}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-foreground">
+                    Linked with {partner.full_name || 'Partner'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Together for {partnership?.partnership_since ? 
+                      Math.floor((Date.now() - new Date(partnership.partnership_since).getTime()) / (1000 * 60 * 60 * 24)) 
+                      : 0} days
+                  </p>
+                </div>
+                <Users className="h-4 w-4 text-muted-foreground" />
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-foreground">Linked with Sarah</p>
-                <p className="text-xs text-muted-foreground">Together for 23 days</p>
+              <div className="mt-3 flex gap-2">
+                <Button variant="outline" size="sm" className="flex-1 text-xs">
+                  View Partnership Stats
+                </Button>
+                <Button variant="outline" size="sm" className="flex-1 text-xs">
+                  Manage Partnership
+                </Button>
               </div>
-              <Users className="h-4 w-4 text-muted-foreground" />
             </div>
-            <div className="mt-3 flex gap-2">
-              <Button variant="outline" size="sm" className="flex-1 text-xs">
-                View Partnership Stats
-              </Button>
-              <Button variant="outline" size="sm" className="flex-1 text-xs">
-                Manage Partnership
-              </Button>
-            </div>
-          </div>
+          )}
 
           {/* Notifications */}
           <section>
