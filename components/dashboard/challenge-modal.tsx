@@ -1,3 +1,9 @@
+/*
+ * PHASE 3 FEATURE - NOT IMPLEMENTED YET  
+ * This component contains dummy/placeholder data and is not functional.
+ * TODO: Implement with real challenge/review dispute workflow
+ */
+
 "use client"
 
 import { useState } from "react"

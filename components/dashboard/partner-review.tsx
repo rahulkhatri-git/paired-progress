@@ -1,3 +1,9 @@
+/*
+ * PHASE 3 FEATURE - NOT IMPLEMENTED YET
+ * This component contains dummy/placeholder data and is not functional.
+ * TODO: Implement with real partner data and review workflow
+ */
+
 "use client"
 
 import { useState } from "react"

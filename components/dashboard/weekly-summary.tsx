@@ -1,3 +1,9 @@
+/*
+ * PHASE 3 FEATURE - NOT IMPLEMENTED YET
+ * This component contains dummy/placeholder data and is not functional.
+ * TODO: Implement with real weekly statistics and partner data
+ */
+
 "use client"
 
 import { ArrowLeft, Trophy, TrendingUp, Flame, ThumbsUp } from "lucide-react"
