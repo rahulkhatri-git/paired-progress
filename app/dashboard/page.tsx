@@ -217,29 +217,6 @@ export default function DashboardPage() {
         />
       )}
 
-      {/* Quick actions - only show if user has a partner */}
-      {hasPartner && (
-        <div className="mx-auto w-full max-w-6xl px-4 py-3 md:px-6">
-          <div className="flex items-center gap-2 overflow-x-auto">
-            <button
-              onClick={() => setView("review")}
-              className="flex shrink-0 items-center gap-1.5 rounded-full border border-border/60 bg-card px-3.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent"
-            >
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-orange-500/10 text-[10px] font-bold text-orange-600">
-                0
-              </span>
-              Review Partner
-            </button>
-            <button
-              onClick={() => setView("summary")}
-              className="flex shrink-0 items-center gap-1.5 rounded-full border border-border/60 bg-card px-3.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent"
-            >
-              Weekly Summary
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Split-screen habits */}
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 md:px-6">
         {/* Always show 2-column layout with partner section */}
