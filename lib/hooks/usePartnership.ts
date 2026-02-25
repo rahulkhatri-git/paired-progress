@@ -71,6 +71,10 @@ export function usePartnership() {
           .select('id, full_name, email, avatar_url')
           .eq('id', partnerId)
           .single()
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:75',message:'profile query result',data:{hasData:!!profileData,hasError:!!profileError,errorCode:profileError?.code,errorMessage:profileError?.message},timestamp:Date.now(),hypothesisId:'H6,H7'})}).catch(()=>{});
+        // #endregion
 
         if (profileError) throw profileError
         
@@ -84,6 +88,9 @@ export function usePartnership() {
         })
       }
     } catch (err: any) {
+      // #region agent log
+      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:91',message:'partnership fetch error caught',data:{errorMessage:err?.message,errorCode:err?.code,errorDetails:err?.details},timestamp:Date.now(),hypothesisId:'H8'})}).catch(()=>{});
+      // #endregion
       console.error('Error fetching partnership:', err)
       setError(err)
     } finally {
