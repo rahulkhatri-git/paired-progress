@@ -69,14 +69,10 @@ export default function DashboardPage() {
   const [historyHabitId, setHistoryHabitId] = useState<string | null>(null)
   const [sendInviteOpen, setSendInviteOpen] = useState(false)
   const [acceptInviteOpen, setAcceptInviteOpen] = useState(false)
-  const [challengeOpen, setChallengeOpen] = useState(false)
   const [createHabitOpen, setCreateHabitOpen] = useState(false)
   const [view, setView] = useState<DashboardView>("dashboard")
   const [weekOffset, setWeekOffset] = useState(0)
   const [partnerSectionCollapsed, setPartnerSectionCollapsed] = useState(false)
-
-  /* Demo state -- kept for development/testing only */
-  const emptyPreview = "none"
 
   /* Notification system */
   const { items: notifications, dismiss: dismissNotification } = useNotifications()
@@ -211,39 +207,38 @@ export default function DashboardPage() {
         onDismissNotification={dismissNotification}
       />
 
-      <PointsBar
-        yourName="You"
-        yourPoints={185}
-        partnerName="Sarah"
-        partnerPoints={162}
-      />
+      {/* Only show PointsBar if user has a partner */}
+      {hasPartner && partner && (
+        <PointsBar
+          yourName={user?.user_metadata?.full_name || "You"}
+          yourPoints={0} // TODO: Calculate from monthly_scores
+          partnerName={partner.full_name || "Partner"}
+          partnerPoints={0} // TODO: Calculate from monthly_scores
+        />
+      )}
 
-      {/* Quick actions */}
-      <div className="mx-auto w-full max-w-6xl px-4 py-3 md:px-6">
-        <div className="flex items-center gap-2 overflow-x-auto">
-          <button
-            onClick={() => setView("review")}
-            className="flex shrink-0 items-center gap-1.5 rounded-full border border-border/60 bg-card px-3.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-orange-500/10 text-[10px] font-bold text-orange-600">
-              3
-            </span>
-            Review Partner
-          </button>
-          <button
-            onClick={() => setView("summary")}
-            className="flex shrink-0 items-center gap-1.5 rounded-full border border-border/60 bg-card px-3.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            Weekly Summary
-          </button>
-          <button
-            onClick={() => setChallengeOpen(true)}
-            className="flex shrink-0 items-center gap-1.5 rounded-full border border-border/60 bg-card px-3.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            View Challenge
-          </button>
+      {/* Quick actions - only show if user has a partner */}
+      {hasPartner && (
+        <div className="mx-auto w-full max-w-6xl px-4 py-3 md:px-6">
+          <div className="flex items-center gap-2 overflow-x-auto">
+            <button
+              onClick={() => setView("review")}
+              className="flex shrink-0 items-center gap-1.5 rounded-full border border-border/60 bg-card px-3.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent"
+            >
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-orange-500/10 text-[10px] font-bold text-orange-600">
+                0
+              </span>
+              Review Partner
+            </button>
+            <button
+              onClick={() => setView("summary")}
+              className="flex shrink-0 items-center gap-1.5 rounded-full border border-border/60 bg-card px-3.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent"
+            >
+              Weekly Summary
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Split-screen habits */}
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 md:px-6">
@@ -359,16 +354,11 @@ export default function DashboardPage() {
         open={logModalOpen}
         onOpenChange={setLogModalOpen}
         habitId={logHabitId}
-        habits={YOUR_HABITS}
+        habits={habits}
         onSuccess={() => {
           refetchHabits()
           refetchLogs()
         }}
-      />
-
-      <ChallengeModal
-        open={challengeOpen}
-        onOpenChange={setChallengeOpen}
       />
 
       <CreateHabitModal
