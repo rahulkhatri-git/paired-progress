@@ -247,28 +247,21 @@ export default function DashboardPage() {
 
       {/* Split-screen habits */}
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 md:px-6">
-        {/* Empty state previews */}
-        {emptyPreview === "no-habits" ? (
-          <EmptyNoHabits onCreateHabit={() => setCreateHabitOpen(true)} />
-        ) : emptyPreview === "no-partner" ? (
-          <EmptyNoPartner />
-        ) : emptyPreview === "all-done" ? (
-          <EmptyAllDone />
-        ) : emptyPreview === "no-reviews" ? (
-          <EmptyNoPendingReviews />
-        ) : YOUR_HABITS.length === 0 ? (
-          <EmptyNoHabits onCreateHabit={() => setCreateHabitOpen(true)} />
-        ) : (
-          /* Default dashboard with habit columns */
-          <div className="grid gap-6 md:grid-cols-[1fr_auto]">
-            {/* Your habits */}
-            <section className={partnerSectionCollapsed ? "" : "md:col-span-1"}>
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-foreground">Your Habits</h2>
+        {/* Always show 2-column layout with partner section */}
+          {/* Your habits */}
+          <section className={partnerSectionCollapsed ? "" : "md:col-span-1"}>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-foreground">Your Habits</h2>
+              {YOUR_HABITS.length > 0 && (
                 <span className="text-xs font-medium text-muted-foreground">
                   {YOUR_HABITS.filter((h) => h.completed).length}/{YOUR_HABITS.length} done
                 </span>
-              </div>
+              )}
+            </div>
+            
+            {YOUR_HABITS.length === 0 ? (
+              <EmptyNoHabits onCreateHabit={() => setCreateHabitOpen(true)} />
+            ) : (
               <div className={`grid gap-3 ${partnerSectionCollapsed ? "md:grid-cols-2 lg:grid-cols-3" : ""}`}>
                 {YOUR_HABITS.map((habit) => (
                   <HabitCard 
@@ -280,7 +273,8 @@ export default function DashboardPage() {
                   />
                 ))}
               </div>
-            </section>
+            )}
+          </section>
 
             {/* Partner habits - collapsed to side */}
             {partnerSectionCollapsed ? (
@@ -347,10 +341,9 @@ export default function DashboardPage() {
                     onAcceptInvite={() => setAcceptInviteOpen(true)}
                   />
                 )}
-              </section>
-            )}
-          </div>
-        )}
+            </section>
+          )}
+        </div>
       </main>
 
       {/* FAB */}
