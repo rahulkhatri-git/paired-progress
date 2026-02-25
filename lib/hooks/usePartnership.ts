@@ -70,7 +70,7 @@ export function usePartnership() {
           .from('profiles')
           .select('id, full_name, email, avatar_url')
           .eq('id', partnerId)
-          .single()
+          .maybeSingle()
         
         // #region agent log
         fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:75',message:'profile query result',data:{hasData:!!profileData,hasError:!!profileError,errorCode:profileError?.code,errorMessage:profileError?.message},timestamp:Date.now(),hypothesisId:'H6,H7'})}).catch(()=>{});
@@ -78,14 +78,27 @@ export function usePartnership() {
 
         if (profileError) throw profileError
         
-        // #region agent log
-        fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:72',message:'partner profile fetched',data:{partnerName:profileData?.full_name,partnerEmail:profileData?.email},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
-        // #endregion
-
-        setPartner({
-          ...profileData,
-          partnership_since: partnershipData.accepted_at || partnershipData.created_at,
-        })
+        if (profileData) {
+          // #region agent log
+          fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:84',message:'partner profile found',data:{partnerName:profileData.full_name,partnerEmail:profileData.email},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
+          // #endregion
+          setPartner({
+            ...profileData,
+            partnership_since: partnershipData.accepted_at || partnershipData.created_at,
+          })
+        } else {
+          // Profile doesn't exist - use fallback data
+          // #region agent log
+          fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:94',message:'profile missing, using fallback',data:{partnerId:partnerId},timestamp:Date.now(),hypothesisId:'H7'})}).catch(()=>{});
+          // #endregion
+          setPartner({
+            id: partnerId,
+            full_name: 'Partner',
+            email: null,
+            avatar_url: null,
+            partnership_since: partnershipData.accepted_at || partnershipData.created_at,
+          })
+        }
       }
     } catch (err: any) {
       // #region agent log
