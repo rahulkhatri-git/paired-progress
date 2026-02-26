@@ -36,15 +36,9 @@ export function usePartnership() {
       if (partnershipError) {
         if (partnershipError.code === 'PGRST116') {
           // No partnership found - this is okay
-          // #region agent log
-          fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:42',message:'no partnership found (PGRST116)',data:{},timestamp:Date.now(),hypothesisId:'H5'})}).catch(()=>{});
-          // #endregion
           setPartnership(null)
           setPartner(null)
         } else {
-          // #region agent log
-          fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:49',message:'partnership query error',data:{errorCode:partnershipError.code,errorMessage:partnershipError.message},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
-          // #endregion
           throw partnershipError
         }
       } else if (partnershipData) {
@@ -213,29 +207,13 @@ export function useInvitations() {
   }
 
   const acceptInvitation = async (code: string): Promise<boolean> => {
-    // #region agent log
-    fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:215',message:'acceptInvitation START',data:{code,hasUser:!!user,userId:user?.id,userEmail:user?.email},timestamp:Date.now(),hypothesisId:'H1,H4'})}).catch(()=>{});
-    // #endregion
-
     if (!user) {
-      // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:217',message:'no user - early return',data:{},timestamp:Date.now(),hypothesisId:'H4'})}).catch(()=>{});
-      // #endregion
       toast.error('You must be logged in')
       return false
     }
 
     try {
-      // DEBUG: Check ALL invitations with this code (no status filter)
-      // #region agent log
-      const { data: allInvites } = await supabase.from('partner_invitations').select('*').eq('code', code.toUpperCase())
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:223-debug',message:'ALL invitations with code (no filters)',data:{code,totalAllInvites:allInvites?.length,statuses:allInvites?.map(i=>i.status)},timestamp:Date.now(),hypothesisId:'H6'})}).catch(()=>{});
-      // #endregion
-
-      // Get invitation - use maybeSingle() and order by created_at desc to get most recent
-      // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:223',message:'fetching invitation',data:{code,upperCode:code.toUpperCase()},timestamp:Date.now(),hypothesisId:'H3,H5'})}).catch(()=>{});
-      // #endregion
+      // Get invitation - use limit(1) and order by created_at desc to get most recent
       const { data: invitations, error: inviteError } = await supabase
         .from('partner_invitations')
         .select('*')
@@ -245,10 +223,6 @@ export function useInvitations() {
         .limit(1)
 
       const invitation = invitations?.[0]
-
-      // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:230',message:'invitation fetch result',data:{hasInvitation:!!invitation,inviteErrorCode:inviteError?.code,inviteErrorMsg:inviteError?.message,inviterId:invitation?.inviter_id,invitationStatus:invitation?.status,totalFound:invitations?.length},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
-      // #endregion
 
       if (inviteError || !invitation) {
         toast.error('Invalid or expired invitation code')
@@ -281,9 +255,6 @@ export function useInvitations() {
       }
 
       // Create partnership
-      // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:261',message:'creating partnership',data:{user1_id:invitation.inviter_id,user2_id:user.id},timestamp:Date.now(),hypothesisId:'H1,H2'})}).catch(()=>{});
-      // #endregion
       const { error: partnershipError } = await supabase
         .from('partnerships')
         .insert({
@@ -293,10 +264,6 @@ export function useInvitations() {
           invited_by: invitation.inviter_id,
           accepted_at: new Date().toISOString(),
         })
-
-      // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:271',message:'partnership insert result',data:{hasError:!!partnershipError,errorCode:partnershipError?.code,errorMsg:partnershipError?.message,errorDetails:partnershipError?.details},timestamp:Date.now(),hypothesisId:'H1,H2'})}).catch(()=>{});
-      // #endregion
 
       if (partnershipError) throw partnershipError
 
@@ -311,15 +278,9 @@ export function useInvitations() {
         .eq('code', code.toUpperCase())
         .eq('status', 'pending')
 
-      // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:283',message:'SUCCESS - partnership created',data:{},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
-      // #endregion
       toast.success('Partnership accepted! 🎉')
       return true
     } catch (err: any) {
-      // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:286',message:'CATCH block - error thrown',data:{errorMsg:err.message,errorCode:err.code,errorName:err.name},timestamp:Date.now(),hypothesisId:'H1,H2'})}).catch(()=>{});
-      // #endregion
       console.error('Error accepting invitation:', err)
       toast.error(err.message || 'Failed to accept invitation')
       return false

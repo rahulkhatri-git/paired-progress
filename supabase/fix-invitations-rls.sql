@@ -1,8 +1,9 @@
 -- Fix RLS policy for partner_invitations to allow code-based invitation lookup
 -- This allows users to accept invitations using invite codes/links
 
--- Drop the restrictive policy
+-- Drop the old restrictive policies
 DROP POLICY IF EXISTS "Users can view their invitations" ON partner_invitations;
+DROP POLICY IF EXISTS "Users can view their invitations or pending invites by code" ON partner_invitations;
 
 -- Create new policy that allows:
 -- 1. Users to view invitations they sent (inviter_id)
