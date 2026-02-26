@@ -20,8 +20,14 @@ interface MonthlyScore {
  * - Silver tier: 2 points
  * - Gold tier: 3 points
  * - 7-day streak: +3 bonus (calculated separately)
- * - Partner approval: +1 bonus
- * - Partner challenge: -1 penalty
+ * - Partner approval: +1 bonus (on top of base points)
+ * - Partner challenge: NO base points + (-1) penalty
+ * 
+ * Example:
+ * - Gold tier approved: 3 (base) + 1 (approval) = 4 pts
+ * - Gold tier challenged: 0 (base removed) - 1 (penalty) = -1 pts net
+ * - Binary approved: 3 (base) + 1 (approval) = 4 pts
+ * - Binary challenged: 0 (base removed) - 1 (penalty) = -1 pts net
  */
 
 export function useMonthlyScores(partnerId?: string) {
@@ -56,8 +62,11 @@ export function useMonthlyScores(partnerId?: string) {
 
       // Calculate points from each log
       logs.forEach((log: HabitLog) => {
-        // Base points from completion/tier
-        if (log.completed) {
+        // Check if log was challenged (reviewed and NOT approved)
+        const wasChallenged = log.reviewed_by && log.approved === false
+        
+        // Base points from completion/tier (ONLY if not challenged)
+        if (log.completed && !wasChallenged) {
           if (log.tier_achieved === 'gold') {
             totalPoints += 3
           } else if (log.tier_achieved === 'silver') {
@@ -73,10 +82,10 @@ export function useMonthlyScores(partnerId?: string) {
         // Bonus/penalty for partner review
         if (log.reviewed_by) {
           if (log.approved) {
-            // Approval bonus
+            // Approval bonus: +1 point ON TOP of base points
             totalPoints += 1
           } else {
-            // Challenge penalty
+            // Challenge penalty: base points already NOT counted above, PLUS -1 penalty
             totalPoints -= 1
           }
         }
