@@ -209,7 +209,25 @@ export function EmptyAllDone() {
 }
 
 /* ================================================================== */
-/*  4. No Pending Reviews                                             */
+/*  4. Partner Has No Shared Habits                                   */
+/* ================================================================== */
+export function EmptyNoSharedHabits({ partnerName }: { partnerName?: string }) {
+  return (
+    <EmptyShell>
+      <WaitingIllustration />
+      <h3 className="mt-5 text-lg font-bold text-foreground text-balance">
+        {partnerName ? `${partnerName} hasn't shared any habits yet` : "Your partner hasn't shared any habits yet"}
+      </h3>
+      <p className="mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
+        When your partner creates shared habits, they'll appear here so you can
+        track their progress together.
+      </p>
+    </EmptyShell>
+  )
+}
+
+/* ================================================================== */
+/*  5. No Pending Reviews                                             */
 /* ================================================================== */
 export function EmptyNoPendingReviews() {
   return (

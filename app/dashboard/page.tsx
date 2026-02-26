@@ -297,17 +297,21 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 
-                {hasPartner && partnerHabits.length > 0 ? (
-                  <div className="grid gap-3">
-                    {partnerHabits.map((habit) => (
-                      <PartnerHabitCard
-                        key={habit.id}
-                        habit={habit}
-                        logs={partnerLogs}
-                        partnerName={partner?.full_name?.split(' ')[0] || 'Partner'}
-                      />
-                    ))}
-                  </div>
+                {hasPartner ? (
+                  partnerHabits.length > 0 ? (
+                    <div className="grid gap-3">
+                      {partnerHabits.map((habit) => (
+                        <PartnerHabitCard
+                          key={habit.id}
+                          habit={habit}
+                          logs={partnerLogs}
+                          partnerName={partner?.full_name?.split(' ')[0] || 'Partner'}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyNoSharedHabits partnerName={partner?.full_name?.split(' ')[0]} />
+                  )
                 ) : (
                   <EmptyNoPartner 
                     onSendInvite={() => setSendInviteOpen(true)}
