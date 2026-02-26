@@ -44,7 +44,7 @@ export function SendInviteModal({ open, onOpenChange, onSuccess }: SendInviteMod
   function handleCopyLink() {
     if (!invitation) return
     
-    const inviteUrl = `${window.location.origin}/?invite=${invitation.code}`
+    const inviteUrl = `${window.location.origin}/invite/${invitation.code}`
     navigator.clipboard.writeText(inviteUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)

@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/landing/navbar"
 import { HeroSection } from "@/components/landing/hero-section"
 import { FeaturesSection } from "@/components/landing/features-section"
@@ -15,17 +15,31 @@ import { useAuth } from "@/lib/auth-context"
 
 type View = "landing" | "onboarding" | "complete"
 
-export default function Home() {
+function HomeContent() {
   const [view, setView] = useState<View>("landing")
   const [authOpen, setAuthOpen] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, loading } = useAuth()
+  const inviteCode = searchParams.get('invite')
 
   useEffect(() => {
     if (!loading && user) {
-      router.push("/dashboard")
+      // If user is logged in and there's an invite code, redirect to accept it
+      if (inviteCode) {
+        router.push(`/invite/${inviteCode}`)
+      } else {
+        router.push("/dashboard")
+      }
     }
-  }, [user, loading, router])
+  }, [user, loading, router, inviteCode])
+
+  // Auto-open auth modal if there's an invite code
+  useEffect(() => {
+    if (inviteCode && !user && !loading) {
+      setAuthOpen(true)
+    }
+  }, [inviteCode, user, loading])
 
   if (loading) {
     return (
@@ -81,6 +95,15 @@ export default function Home() {
       <Navbar onOpenAuth={() => setAuthOpen(true)} />
       <main>
         <HeroSection onOpenAuth={() => setAuthOpen(true)} />
+        {inviteCode && !user && (
+          <div className="bg-primary/5 border-y border-primary/20 py-4">
+            <div className="mx-auto max-w-4xl px-6 text-center">
+              <p className="text-sm font-medium text-primary">
+                🎉 You've been invited to join Paired Progress! Sign up to accept the invitation.
+              </p>
+            </div>
+          </div>
+        )}
         <FeaturesSection />
         <HowItWorksSection />
         <TierSection />
@@ -92,9 +115,24 @@ export default function Home() {
         onOpenChange={setAuthOpen}
         onSuccess={() => {
           setAuthOpen(false)
-          setView("onboarding")
+          // If there's an invite code, user will be redirected by the effect above
+          if (!inviteCode) {
+            setView("onboarding")
+          }
         }}
       />
     </div>
+  )
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    }>
+      <HomeContent />
+    </Suspense>
   )
 }

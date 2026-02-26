@@ -21,13 +21,16 @@ interface MonthlyScore {
  * - Gold tier: 3 points
  * - 7-day streak: +3 bonus (calculated separately)
  * - Partner approval: +1 bonus (on top of base points)
- * - Partner challenge: NO base points + (-1) penalty
+ * - Partner challenge: NO base points (0 pts, not negative)
  * 
  * Example:
  * - Gold tier approved: 3 (base) + 1 (approval) = 4 pts
- * - Gold tier challenged: 0 (base removed) - 1 (penalty) = -1 pts net
+ * - Gold tier challenged: 0 pts (base removed, no penalty)
  * - Binary approved: 3 (base) + 1 (approval) = 4 pts
- * - Binary challenged: 0 (base removed) - 1 (penalty) = -1 pts net
+ * - Binary challenged: 0 pts (base removed, no penalty)
+ * 
+ * Philosophy: Challenge removes points but doesn't punish further.
+ * Accountability through transparency, not harsh penalties.
  */
 
 export function useMonthlyScores(partnerId?: string) {
@@ -79,15 +82,9 @@ export function useMonthlyScores(partnerId?: string) {
           }
         }
 
-        // Bonus/penalty for partner review
-        if (log.reviewed_by) {
-          if (log.approved) {
-            // Approval bonus: +1 point ON TOP of base points
-            totalPoints += 1
-          } else {
-            // Challenge penalty: base points already NOT counted above, PLUS -1 penalty
-            totalPoints -= 1
-          }
+        // Approval bonus (only if approved, no penalty if challenged)
+        if (log.reviewed_by && log.approved) {
+          totalPoints += 1
         }
       })
 
