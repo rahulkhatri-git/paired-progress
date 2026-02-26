@@ -226,6 +226,12 @@ export function useInvitations() {
     }
 
     try {
+      // DEBUG: Check ALL invitations with this code (no status filter)
+      // #region agent log
+      const { data: allInvites } = await supabase.from('partner_invitations').select('*').eq('code', code.toUpperCase())
+      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:223-debug',message:'ALL invitations with code (no filters)',data:{code,totalAllInvites:allInvites?.length,statuses:allInvites?.map(i=>i.status)},timestamp:Date.now(),hypothesisId:'H6'})}).catch(()=>{});
+      // #endregion
+
       // Get invitation - use maybeSingle() and order by created_at desc to get most recent
       // #region agent log
       fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:223',message:'fetching invitation',data:{code,upperCode:code.toUpperCase()},timestamp:Date.now(),hypothesisId:'H3,H5'})}).catch(()=>{});
