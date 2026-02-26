@@ -1,6 +1,7 @@
 "use client"
 
-import { History } from "lucide-react"
+import { History, Eye } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import type { Habit, HabitLog } from "@/lib/types/habits"
 import { format } from "date-fns"
 
@@ -8,9 +9,10 @@ interface PartnerHabitCardProps {
   habit: Habit
   logs: HabitLog[]
   partnerName: string
+  onReview?: (habit: Habit, log: HabitLog) => void
 }
 
-export function PartnerHabitCard({ habit, logs, partnerName }: PartnerHabitCardProps) {
+export function PartnerHabitCard({ habit, logs, partnerName, onReview }: PartnerHabitCardProps) {
   // Find today's log
   const today = format(new Date(), 'yyyy-MM-dd')
   const todayLog = logs.find((log) => log.habit_id === habit.id && log.log_date === today)
@@ -118,11 +120,37 @@ export function PartnerHabitCard({ habit, logs, partnerName }: PartnerHabitCardP
         </div>
       )}
 
-      {/* Needs Review Badge */}
-      {todayLog?.requires_review && !todayLog.reviewed_by && (
-        <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-center">
-          <span className="text-xs font-semibold text-amber-700">
-            Needs Your Review
+      {/* Needs Review Badge + Button */}
+      {todayLog?.requires_review && !todayLog.reviewed_by && onReview && (
+        <div className="mt-3 space-y-2">
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-center">
+            <span className="text-xs font-semibold text-amber-700">
+              ⚠️ Needs Your Review
+            </span>
+          </div>
+          <Button
+            onClick={() => onReview(habit, todayLog)}
+            variant="outline"
+            size="sm"
+            className="w-full gap-2 border-amber-500/30 text-amber-700 hover:bg-amber-500/10 hover:text-amber-800"
+          >
+            <Eye className="h-4 w-4" />
+            Review Log
+          </Button>
+        </div>
+      )}
+
+      {/* Reviewed Status */}
+      {todayLog?.reviewed_by && (
+        <div className={`mt-3 rounded-lg border px-3 py-2 text-center ${
+          todayLog.approved 
+            ? 'border-green-500/30 bg-green-500/10' 
+            : 'border-red-500/30 bg-red-500/10'
+        }`}>
+          <span className={`text-xs font-semibold ${
+            todayLog.approved ? 'text-green-700' : 'text-red-700'
+          }`}>
+            {todayLog.approved ? '✓ Approved' : '✗ Challenged'}
           </span>
         </div>
       )}

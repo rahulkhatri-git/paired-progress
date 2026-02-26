@@ -17,6 +17,7 @@ import { EditHabitModal } from "@/components/dashboard/edit-habit-modal"
 import { LogHistoryModal } from "@/components/dashboard/log-history-modal"
 import { SendInviteModal } from "@/components/dashboard/send-invite-modal"
 import { AcceptInviteModal } from "@/components/dashboard/accept-invite-modal"
+import { ReviewLogModal } from "@/components/dashboard/review-log-modal"
 import {
   EmptyNoHabits,
   EmptyNoPartner,
@@ -31,6 +32,8 @@ import { useHabits } from "@/lib/hooks/useHabits"
 import { useHabitLogs } from "@/lib/hooks/useHabitLogs"
 import { usePartnership } from "@/lib/hooks/usePartnership"
 import { usePartnerHabits } from "@/lib/hooks/usePartnerHabits"
+import { useLogReviews } from "@/lib/hooks/useLogReviews"
+import type { Habit, HabitLog } from "@/lib/types/habits"
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
@@ -60,8 +63,11 @@ export default function DashboardPage() {
   const { 
     habits: partnerHabits, 
     logs: partnerLogs, 
-    loading: partnerHabitsLoading 
+    loading: partnerHabitsLoading,
+    refetch: refetchPartnerHabits
   } = usePartnerHabits()
+  const { approveLog, challengeLog } = useLogReviews()
+  
   const [logModalOpen, setLogModalOpen] = useState(false)
   const [logHabitId, setLogHabitId] = useState<string | null>(null)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -71,12 +77,38 @@ export default function DashboardPage() {
   const [sendInviteOpen, setSendInviteOpen] = useState(false)
   const [acceptInviteOpen, setAcceptInviteOpen] = useState(false)
   const [createHabitOpen, setCreateHabitOpen] = useState(false)
+  const [reviewModalOpen, setReviewModalOpen] = useState(false)
+  const [reviewHabit, setReviewHabit] = useState<Habit | null>(null)
+  const [reviewLog, setReviewLog] = useState<HabitLog | null>(null)
   const [view, setView] = useState<DashboardView>("dashboard")
   const [weekOffset, setWeekOffset] = useState(0)
   const [partnerSectionCollapsed, setPartnerSectionCollapsed] = useState(false)
 
   /* Notification system */
   const { items: notifications, dismiss: dismissNotification } = useNotifications()
+
+  // Handle review modal
+  const handleOpenReview = (habit: Habit, log: HabitLog) => {
+    setReviewHabit(habit)
+    setReviewLog(log)
+    setReviewModalOpen(true)
+  }
+
+  const handleApproveLog = async () => {
+    if (!reviewLog) return
+    const success = await approveLog(reviewLog.id)
+    if (success) {
+      refetchPartnerHabits()
+    }
+  }
+
+  const handleChallengeLog = async (reason: string) => {
+    if (!reviewLog) return
+    const success = await challengeLog(reviewLog.id, reason)
+    if (success) {
+      refetchPartnerHabits()
+    }
+  }
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -307,6 +339,7 @@ export default function DashboardPage() {
                           habit={habit}
                           logs={partnerLogs}
                           partnerName={partner?.full_name?.split(' ')[0] || 'Partner'}
+                          onReview={handleOpenReview}
                         />
                       ))}
                     </div>
@@ -379,6 +412,19 @@ export default function DashboardPage() {
           // Partnership accepted - page will reload automatically
         }}
       />
+
+      {/* Review Log Modal */}
+      {reviewHabit && reviewLog && (
+        <ReviewLogModal
+          open={reviewModalOpen}
+          onOpenChange={setReviewModalOpen}
+          habit={reviewHabit}
+          log={reviewLog}
+          partnerName={partner?.full_name || 'Partner'}
+          onApprove={handleApproveLog}
+          onChallenge={handleChallengeLog}
+        />
+      )}
     </div>
   )
 }
