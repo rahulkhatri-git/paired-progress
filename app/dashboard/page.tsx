@@ -33,6 +33,7 @@ import { useHabitLogs } from "@/lib/hooks/useHabitLogs"
 import { usePartnership } from "@/lib/hooks/usePartnership"
 import { usePartnerHabits } from "@/lib/hooks/usePartnerHabits"
 import { useLogReviews } from "@/lib/hooks/useLogReviews"
+import { useMonthlyScores } from "@/lib/hooks/useMonthlyScores"
 import type { Habit, HabitLog } from "@/lib/types/habits"
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -67,6 +68,7 @@ export default function DashboardPage() {
     refetch: refetchPartnerHabits
   } = usePartnerHabits()
   const { approveLog, challengeLog } = useLogReviews()
+  const { userScore, partnerScore, refetch: refetchScores } = useMonthlyScores(partner?.id)
   
   const [logModalOpen, setLogModalOpen] = useState(false)
   const [logHabitId, setLogHabitId] = useState<string | null>(null)
@@ -99,6 +101,7 @@ export default function DashboardPage() {
     const success = await approveLog(reviewLog.id)
     if (success) {
       refetchPartnerHabits()
+      refetchScores() // Update scores after approval
     }
   }
 
@@ -107,6 +110,7 @@ export default function DashboardPage() {
     const success = await challengeLog(reviewLog.id, reason)
     if (success) {
       refetchPartnerHabits()
+      refetchScores() // Update scores after challenge
     }
   }
 
@@ -244,9 +248,9 @@ export default function DashboardPage() {
       {hasPartner && partner && (
         <PointsBar
           yourName={user?.user_metadata?.full_name || "You"}
-          yourPoints={0} // TODO: Calculate from monthly_scores
+          yourPoints={userScore}
           partnerName={partner.full_name || "Partner"}
-          partnerPoints={0} // TODO: Calculate from monthly_scores
+          partnerPoints={partnerScore}
         />
       )}
 
