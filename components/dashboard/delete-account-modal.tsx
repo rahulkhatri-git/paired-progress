@@ -41,7 +41,7 @@ export function DeleteAccountModal({ isOpen, onClose, userEmail, userId }: Delet
       }
 
       // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:38',message:'Calling edge function',data:{userId,hasSession:!!session},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:38',message:'Calling edge function',data:{userId,hasSession:!!session,hasAccessToken:!!session?.access_token,tokenLength:session?.access_token?.length},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
       // #endregion
 
       // Call Edge Function to delete account (handles both profile and auth)
@@ -52,7 +52,7 @@ export function DeleteAccountModal({ isOpen, onClose, userEmail, userId }: Delet
       })
 
       // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:48',message:'Edge function result',data:{hasError:!!functionError,errorMsg:functionError?.message,success:data?.success},timestamp:Date.now(),hypothesisId:'H1,H2'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:48',message:'Edge function result',data:{hasError:!!functionError,errorMsg:functionError?.message,errorName:functionError?.name,errorContext:functionError?.context,statusCode:functionError?.status,dataReceived:data,success:data?.success},timestamp:Date.now(),hypothesisId:'H1,H2'})}).catch(()=>{});
       // #endregion
 
       if (functionError) throw functionError
