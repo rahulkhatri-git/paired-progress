@@ -168,6 +168,19 @@ export function useInvitations() {
     }
 
     try {
+      // Check if user already has a partner
+      const { data: existingPartnership } = await supabase
+        .from('partnerships')
+        .select('id')
+        .eq('status', 'active')
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+        .single()
+
+      if (existingPartnership) {
+        toast.error('You already have an active partner. Unlink first to invite someone new.')
+        return null
+      }
+
       // Generate 6-character code
       const code = Math.random().toString(36).substring(2, 8).toUpperCase()
       
