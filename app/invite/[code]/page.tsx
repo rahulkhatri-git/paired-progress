@@ -13,6 +13,12 @@ export default function InvitePage({ params }: { params: { code: string } }) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    // Check for invalid code
+    if (!params.code || params.code === 'undefined' || params.code.length < 6) {
+      setError('Invalid invitation code. Please ask your partner for a new invite link.')
+      return
+    }
+
     if (authLoading) return
 
     // Not logged in - redirect to home with invite code in URL
@@ -23,7 +29,7 @@ export default function InvitePage({ params }: { params: { code: string } }) {
 
     // Logged in - auto-accept invitation
     handleAutoAccept()
-  }, [user, authLoading])
+  }, [user, authLoading, params.code])
 
   const handleAutoAccept = async () => {
     if (accepting) return
