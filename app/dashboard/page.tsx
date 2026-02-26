@@ -378,6 +378,7 @@ export default function DashboardPage() {
         onSuccess={() => {
           refetchHabits()
           refetchLogs()
+          refetchScores() // Update score immediately after logging
         }}
       />
 
