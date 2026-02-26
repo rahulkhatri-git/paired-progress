@@ -13,21 +13,42 @@ export default function InvitePage({ params }: { params: { code: string } }) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'invite/[code]/page.tsx:15',message:'useEffect entry',data:{code:params.code,authLoading,hasUser:!!user,userId:user?.id},timestamp:Date.now(),hypothesisId:'A,C,E'})}).catch(()=>{});
+    // #endregion
+
     // Check for invalid code
     if (!params.code || params.code === 'undefined' || params.code.length < 6) {
+      // #region agent log
+      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'invite/[code]/page.tsx:18',message:'invalid code detected',data:{code:params.code,codeLength:params.code?.length},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
       setError('Invalid invitation code. Please ask your partner for a new invite link.')
       return
     }
 
-    if (authLoading) return
+    if (authLoading) {
+      // #region agent log
+      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'invite/[code]/page.tsx:22',message:'early return: authLoading',data:{authLoading},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+      return
+    }
 
     // Not logged in - redirect to home with invite code in URL
     if (!user) {
+      // #region agent log
+      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'invite/[code]/page.tsx:26',message:'redirect: no user',data:{redirectUrl:`/?invite=${params.code}`},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
       router.push(`/?invite=${params.code}`)
+      // #region agent log
+      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'invite/[code]/page.tsx:27',message:'router.push called',data:{},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
       return
     }
 
     // Logged in - auto-accept invitation
+    // #region agent log
+    fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'invite/[code]/page.tsx:31',message:'calling handleAutoAccept',data:{userId:user.id},timestamp:Date.now(),hypothesisId:'A,C,E'})}).catch(()=>{});
+    // #endregion
     handleAutoAccept()
   }, [user, authLoading, params.code, router])
 
