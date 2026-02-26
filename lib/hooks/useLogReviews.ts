@@ -108,12 +108,8 @@ export function useLogReviews() {
         })
         .eq('id', logId)
 
-      if (updateError) {
-        console.error('Error updating habit_logs:', updateError)
-        throw updateError
-      }
+      if (updateError) throw updateError
 
-      console.log('Challenge saved successfully for log:', logId)
       toast.success('Challenge submitted')
       return true
     } catch (err: any) {

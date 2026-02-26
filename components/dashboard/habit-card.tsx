@@ -34,18 +34,6 @@ interface HabitCardProps {
 export function HabitCard({ habit, todayLog, partnerName, isPartner, onLog, onEdit, onViewHistory }: HabitCardProps) {
   const completedGlow = habit.completed ? "ring-1 ring-primary/20 shadow-[0_0_12px_rgba(13,148,136,0.08)]" : ""
 
-  // Debug logging
-  if (todayLog && !isPartner) {
-    console.log('HabitCard Debug:', {
-      habitName: habit.name,
-      hasLog: !!todayLog,
-      reviewedBy: todayLog.reviewed_by,
-      approved: todayLog.approved,
-      rejectionReason: todayLog.rejection_reason,
-      shouldShowChallenge: todayLog.reviewed_by && !todayLog.approved
-    })
-  }
-
   return (
     <div
       onClick={() => !isPartner && onEdit && onEdit(habit.id)}
