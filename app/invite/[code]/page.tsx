@@ -29,7 +29,7 @@ export default function InvitePage({ params }: { params: { code: string } }) {
 
     // Logged in - auto-accept invitation
     handleAutoAccept()
-  }, [user, authLoading, params.code])
+  }, [user, authLoading, params.code, router])
 
   const handleAutoAccept = async () => {
     if (accepting) return
