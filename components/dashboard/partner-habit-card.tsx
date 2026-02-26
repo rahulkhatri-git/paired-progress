@@ -120,33 +120,40 @@ export function PartnerHabitCard({ habit, logs, partnerName, onReview }: Partner
         </div>
       )}
 
-      {/* Review Available - Subtle Indicator */}
-      {todayLog?.requires_review && !todayLog.reviewed_by && onReview && (
+      {/* Review Actions */}
+      {todayLog?.requires_review && onReview && (
         <div className="mt-3">
-          <Button
-            onClick={() => onReview(habit, todayLog)}
-            variant="ghost"
-            size="sm"
-            className="w-full gap-2 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-          >
-            <Eye className="h-3.5 w-3.5" />
-            <span className="text-xs">Can Review</span>
-          </Button>
-        </div>
-      )}
-
-      {/* Reviewed Status */}
-      {todayLog?.reviewed_by && (
-        <div className={`mt-3 rounded-lg border px-3 py-2 text-center ${
-          todayLog.approved 
-            ? 'border-green-500/30 bg-green-500/10' 
-            : 'border-red-500/30 bg-red-500/10'
-        }`}>
-          <span className={`text-xs font-semibold ${
-            todayLog.approved ? 'text-green-700' : 'text-red-700'
-          }`}>
-            {todayLog.approved ? '✓ Approved' : '✗ Challenged'}
-          </span>
+          {!todayLog.reviewed_by ? (
+            /* Not yet reviewed - Show "Can Review" button */
+            <Button
+              onClick={() => onReview(habit, todayLog)}
+              variant="ghost"
+              size="sm"
+              className="w-full gap-2 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+            >
+              <Eye className="h-3.5 w-3.5" />
+              <span className="text-xs">Can Review</span>
+            </Button>
+          ) : (
+            /* Already reviewed - Show decision with option to view/overturn */
+            <Button
+              onClick={() => onReview(habit, todayLog)}
+              variant="ghost"
+              size="sm"
+              className={`w-full gap-2 ${
+                todayLog.approved 
+                  ? 'text-green-600 hover:bg-green-50 hover:text-green-700' 
+                  : 'text-red-600 hover:bg-red-50 hover:text-red-700'
+              }`}
+            >
+              <span className={`text-xs font-semibold ${
+                todayLog.approved ? 'text-green-700' : 'text-red-700'
+              }`}>
+                {todayLog.approved ? '✓ You Approved' : '✗ You Challenged'}
+              </span>
+              <Eye className="h-3.5 w-3.5" />
+            </Button>
+          )}
         </div>
       )}
     </div>

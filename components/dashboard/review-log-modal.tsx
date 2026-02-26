@@ -33,8 +33,13 @@ export function ReviewLogModal({
   onApprove,
   onChallenge,
 }: ReviewLogModalProps) {
-  const [mode, setMode] = useState<'review' | 'challenge'>('review')
-  const [challengeReason, setChallengeReason] = useState('')
+  // Check if already reviewed
+  const isAlreadyReviewed = !!log.reviewed_by
+  const wasApproved = log.approved
+  const challengeReason = log.rejection_reason || ''
+
+  const [mode, setMode] = useState<'review' | 'challenge'>(isAlreadyReviewed ? 'view' : 'review')
+  const [newChallengeReason, setNewChallengeReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   const handleApprove = async () => {
@@ -49,11 +54,11 @@ export function ReviewLogModal({
   }
 
   const handleChallengeSubmit = async () => {
-    if (!challengeReason.trim()) return
+    if (!newChallengeReason.trim()) return
     
     setSubmitting(true)
     try {
-      await onChallenge(challengeReason)
+      await onChallenge(newChallengeReason)
       onOpenChange(false)
       resetState()
     } finally {
@@ -62,8 +67,8 @@ export function ReviewLogModal({
   }
 
   const resetState = () => {
-    setMode('review')
-    setChallengeReason('')
+    setMode(isAlreadyReviewed ? 'view' : 'review')
+    setNewChallengeReason('')
   }
 
   const handleOpenChange = (open: boolean) => {
@@ -102,12 +107,20 @@ export function ReviewLogModal({
             )}
           </div>
           <DialogTitle>
-            {mode === 'review' ? `Review ${partnerName}'s Log` : 'Challenge Log'}
+            {mode === 'view' 
+              ? `Your Review: ${wasApproved ? 'Approved' : 'Challenged'}`
+              : mode === 'review' 
+                ? `Review ${partnerName}'s Log` 
+                : 'Challenge Log'}
           </DialogTitle>
           <DialogDescription>
-            {mode === 'review' 
-              ? `${partnerName} logged this habit. Review it to award accountability points.`
-              : 'Explain why this log doesn\'t meet the habit standards.'}
+            {mode === 'view'
+              ? wasApproved
+                ? `You approved this log and awarded an accountability point. You can overturn your decision if needed.`
+                : `You challenged this log. You can overturn your decision if you reconsidered.`
+              : mode === 'review' 
+                ? `${partnerName} logged this habit. Review it to award accountability points.`
+                : 'Explain why this log doesn\'t meet the habit standards.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -172,7 +185,65 @@ export function ReviewLogModal({
             </div>
           )}
 
-          {mode === 'review' ? (
+          {mode === 'view' ? (
+            /* View Existing Review */
+            <div className="flex flex-col gap-3 pt-2">
+              {/* Current Decision */}
+              <div className={`rounded-lg border p-3 ${
+                wasApproved 
+                  ? 'border-green-500/30 bg-green-500/5' 
+                  : 'border-red-500/30 bg-red-500/5'
+              }`}>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Your Decision
+                </p>
+                <p className={`font-semibold ${
+                  wasApproved ? 'text-green-700' : 'text-red-700'
+                }`}>
+                  {wasApproved ? '✓ Approved' : '✗ Challenged'}
+                </p>
+                {!wasApproved && challengeReason && (
+                  <div className="mt-2 rounded-md bg-background/50 p-2">
+                    <p className="text-xs font-medium text-muted-foreground mb-1">
+                      Your reason:
+                    </p>
+                    <p className="text-sm text-foreground">"{challengeReason}"</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Overturn Options */}
+              <div className="rounded-lg bg-muted/50 p-3">
+                <p className="mb-2 text-xs font-semibold text-muted-foreground">
+                  Changed your mind?
+                </p>
+                <div className="flex gap-2">
+                  {wasApproved ? (
+                    <Button
+                      variant="destructive"
+                      onClick={() => setMode('challenge')}
+                      disabled={submitting}
+                      size="sm"
+                      className="flex-1"
+                    >
+                      <X className="mr-1 h-3.5 w-3.5" />
+                      Change to Challenge
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleApprove}
+                      disabled={submitting}
+                      size="sm"
+                      className="flex-1"
+                    >
+                      <Check className="mr-1 h-3.5 w-3.5" />
+                      Change to Approve
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : mode === 'review' ? (
             /* Review Actions */
             <div className="flex flex-col gap-2 pt-2">
               <Button
@@ -202,8 +273,8 @@ export function ReviewLogModal({
                 </label>
                 <Textarea
                   placeholder={`Explain why this doesn't meet the standard...`}
-                  value={challengeReason}
-                  onChange={(e) => setChallengeReason(e.target.value)}
+                  value={newChallengeReason}
+                  onChange={(e) => setNewChallengeReason(e.target.value)}
                   className="min-h-[100px] resize-none"
                   disabled={submitting}
                 />
@@ -215,7 +286,7 @@ export function ReviewLogModal({
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => setMode('review')}
+                  onClick={() => setMode(isAlreadyReviewed ? 'view' : 'review')}
                   disabled={submitting}
                   className="flex-1"
                 >
@@ -224,7 +295,7 @@ export function ReviewLogModal({
                 <Button
                   variant="destructive"
                   onClick={handleChallengeSubmit}
-                  disabled={!challengeReason.trim() || submitting}
+                  disabled={!newChallengeReason.trim() || submitting}
                   className="flex-1"
                 >
                   {submitting ? 'Submitting...' : 'Submit Challenge'}
@@ -236,9 +307,11 @@ export function ReviewLogModal({
           {/* Info Note */}
           <div className="rounded-lg bg-muted/50 px-3 py-2">
             <p className="text-xs leading-relaxed text-muted-foreground">
-              {mode === 'review' 
-                ? 'Approved logs earn an extra accountability point. Challenges help maintain habit standards.'
-                : 'Challenges are final. Your partner will be notified and this log won\'t count toward their score.'}
+              {mode === 'view'
+                ? 'You can change your review decision at any time. Points will be adjusted automatically.'
+                : mode === 'review' 
+                  ? 'Approved logs earn an extra accountability point. Challenges help maintain habit standards.'
+                  : 'Challenges are visible to your partner. They\'ll see your reasoning and can respond if needed.'}
             </p>
           </div>
         </div>
