@@ -33,54 +33,47 @@ export function DeleteAccountModal({ isOpen, onClose, userEmail, userId }: Delet
     setDeleting(true)
 
     try {
-      // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:33',message:'Deleting profile from DB',data:{userId},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
-      // #endregion
-
-      // Delete profile (cascades to all related data: habits, logs, partnerships, etc.)
-      const { error: deleteError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userId)
-
-      // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:38',message:'Profile delete result',data:{hasError:!!deleteError,errorCode:deleteError?.code,errorMsg:deleteError?.message},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
-      // #endregion
-
-      if (deleteError) throw deleteError
-
-      // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:41',message:'Deleting auth user',data:{userId},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
-      // #endregion
-
-      // Delete the auth user account
-      const { error: authDeleteError } = await supabase.auth.admin.deleteUser(userId)
-
-      // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:44',message:'Auth delete result',data:{hasError:!!authDeleteError,errorCode:authDeleteError?.code,errorMsg:authDeleteError?.message},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
-      // #endregion
-
-      // If auth delete fails, just log it but continue (profile is already deleted)
-      if (authDeleteError) {
-        console.error('Failed to delete auth user (requires service role key):', authDeleteError)
+      // Get current session for auth token
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session) {
+        throw new Error('No active session')
       }
 
       // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:52',message:'Signing out',data:{},timestamp:Date.now(),hypothesisId:'H3,H4'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:38',message:'Calling edge function',data:{userId,hasSession:!!session},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
       // #endregion
 
-      // Sign out and redirect
+      // Call Edge Function to delete account (handles both profile and auth)
+      const { data, error: functionError } = await supabase.functions.invoke('delete-account', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      })
+
+      // #region agent log
+      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:48',message:'Edge function result',data:{hasError:!!functionError,errorMsg:functionError?.message,success:data?.success},timestamp:Date.now(),hypothesisId:'H1,H2'})}).catch(()=>{});
+      // #endregion
+
+      if (functionError) throw functionError
+      if (!data?.success) throw new Error('Failed to delete account')
+
+      // #region agent log
+      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:57',message:'Account deleted - signing out',data:{},timestamp:Date.now(),hypothesisId:'H3,H4'})}).catch(()=>{});
+      // #endregion
+
+      // Sign out locally (auth user already deleted server-side)
       await supabase.auth.signOut()
       
       // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:56',message:'SUCCESS - redirecting',data:{},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:65',message:'SUCCESS - redirecting',data:{},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
       // #endregion
       
       toast.success('Account deleted successfully')
       router.push('/')
     } catch (error: any) {
       // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:64',message:'CATCH - error thrown',data:{errorMsg:error.message,errorCode:error.code},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:73',message:'CATCH - error thrown',data:{errorMsg:error.message,errorCode:error.code},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
       // #endregion
       console.error('Error deleting account:', error)
       toast.error(error.message || 'Failed to delete account')
