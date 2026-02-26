@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { supabase } from "@/lib/supabase-client"
+import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 
 export interface LogReview {
@@ -25,6 +25,7 @@ export function useLogReviews() {
       setLoading(true)
       setError(null)
 
+      const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         throw new Error('Not authenticated')
@@ -78,6 +79,7 @@ export function useLogReviews() {
         throw new Error('Please provide a reason for the challenge')
       }
 
+      const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         throw new Error('Not authenticated')
@@ -125,6 +127,7 @@ export function useLogReviews() {
    */
   const getLogReviews = async (logId: string): Promise<LogReview[]> => {
     try {
+      const supabase = createClient()
       const { data, error } = await supabase
         .from('log_reviews')
         .select('*')
