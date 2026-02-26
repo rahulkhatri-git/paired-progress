@@ -46,9 +46,7 @@ export function DeleteAccountModal({ isOpen, onClose, userEmail, userId }: Delet
 
       // Try calling Edge Function first
       const { data, error: functionError } = await supabase.functions.invoke('delete-account', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
+        body: {},
       })
 
       // #region agent log
