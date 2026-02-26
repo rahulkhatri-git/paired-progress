@@ -44,7 +44,7 @@ export function DeleteAccountModal({ isOpen, onClose, userEmail, userId }: Delet
       fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:38',message:'Calling edge function',data:{userId,hasSession:!!session,hasAccessToken:!!session?.access_token,tokenLength:session?.access_token?.length},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
       // #endregion
 
-      // Call Edge Function to delete account (handles both profile and auth)
+      // Try calling Edge Function first
       const { data, error: functionError } = await supabase.functions.invoke('delete-account', {
         headers: {
           Authorization: `Bearer ${session.access_token}`
@@ -55,25 +55,42 @@ export function DeleteAccountModal({ isOpen, onClose, userEmail, userId }: Delet
       fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:48',message:'Edge function result',data:{hasError:!!functionError,errorMsg:functionError?.message,errorName:functionError?.name,errorContext:functionError?.context,statusCode:functionError?.status,dataReceived:data,success:data?.success},timestamp:Date.now(),hypothesisId:'H1,H2'})}).catch(()=>{});
       // #endregion
 
-      if (functionError) throw functionError
-      if (!data?.success) throw new Error('Failed to delete account')
+      // If Edge Function succeeds, we're done
+      if (!functionError && data?.success) {
+        // #region agent log
+        fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:57',message:'Edge function success - signing out',data:{},timestamp:Date.now(),hypothesisId:'H3,H4'})}).catch(()=>{});
+        // #endregion
+        
+        await supabase.auth.signOut()
+        toast.success('Account deleted successfully')
+        router.push('/')
+        return
+      }
 
       // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:57',message:'Account deleted - signing out',data:{},timestamp:Date.now(),hypothesisId:'H3,H4'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:68',message:'Edge function failed - using fallback',data:{errorMsg:functionError?.message},timestamp:Date.now(),hypothesisId:'H5'})}).catch(()=>{});
       // #endregion
 
-      // Sign out locally (auth user already deleted server-side)
+      // FALLBACK: If Edge Function not deployed, delete profile only
+      // (User will need to manually delete auth account or contact support)
+      const { error: deleteError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId)
+
+      if (deleteError) throw deleteError
+
+      // Sign out
       await supabase.auth.signOut()
       
-      // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:65',message:'SUCCESS - redirecting',data:{},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
-      // #endregion
+      toast.error('Account data deleted, but authentication account remains. Please contact support to fully delete your account.', {
+        duration: 8000
+      })
       
-      toast.success('Account deleted successfully')
       router.push('/')
     } catch (error: any) {
       // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:73',message:'CATCH - error thrown',data:{errorMsg:error.message,errorCode:error.code},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'delete-account-modal.tsx:93',message:'CATCH - error thrown',data:{errorMsg:error.message,errorCode:error.code},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
       // #endregion
       console.error('Error deleting account:', error)
       toast.error(error.message || 'Failed to delete account')
