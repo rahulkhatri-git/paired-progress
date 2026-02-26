@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "@/lib/auth-context"
 import type { HabitLog } from "@/lib/types/habits"
@@ -148,7 +148,7 @@ export function useMonthlyScores(partnerId?: string) {
     return streakCount * 3 // 3 points per 7-day streak
   }
 
-  const fetchScores = async () => {
+  const fetchScores = useCallback(async () => {
     if (!user) {
       setUserScore(0)
       setPartnerScore(0)
@@ -175,7 +175,7 @@ export function useMonthlyScores(partnerId?: string) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user, partnerId, supabase])
 
   useEffect(() => {
     fetchScores()
@@ -190,20 +190,18 @@ export function useMonthlyScores(partnerId?: string) {
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          event: '*',
           schema: 'public',
           table: 'habit_logs',
-          filter: `user_id=eq.${user.id}`, // Only user's own logs
+          filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
-          console.log('Habit log changed:', payload)
-          // Refetch scores when logs change
+          console.log('Real-time: User log changed', payload.eventType)
           fetchScores()
         }
       )
       .subscribe()
 
-    // Also listen to partner's logs if they challenge/approve
     if (partnerId) {
       const partnerChannel = supabase
         .channel('partner_logs_changes')
@@ -213,11 +211,10 @@ export function useMonthlyScores(partnerId?: string) {
             event: '*',
             schema: 'public',
             table: 'habit_logs',
-            filter: `user_id=eq.${partnerId}`, // Partner's logs
+            filter: `user_id=eq.${partnerId}`,
           },
           (payload) => {
-            console.log('Partner log changed:', payload)
-            // Refetch scores when partner's logs change
+            console.log('Real-time: Partner log changed', payload.eventType)
             fetchScores()
           }
         )
@@ -232,7 +229,7 @@ export function useMonthlyScores(partnerId?: string) {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [user?.id, partnerId])
+  }, [user?.id, partnerId, fetchScores])
 
   return {
     userScore,
