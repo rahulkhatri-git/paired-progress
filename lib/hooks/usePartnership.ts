@@ -226,19 +226,22 @@ export function useInvitations() {
     }
 
     try {
-      // Get invitation
+      // Get invitation - use maybeSingle() and order by created_at desc to get most recent
       // #region agent log
       fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:223',message:'fetching invitation',data:{code,upperCode:code.toUpperCase()},timestamp:Date.now(),hypothesisId:'H3,H5'})}).catch(()=>{});
       // #endregion
-      const { data: invitation, error: inviteError } = await supabase
+      const { data: invitations, error: inviteError } = await supabase
         .from('partner_invitations')
         .select('*')
         .eq('code', code.toUpperCase())
         .eq('status', 'pending')
-        .single()
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      const invitation = invitations?.[0]
 
       // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:230',message:'invitation fetch result',data:{hasInvitation:!!invitation,inviteErrorCode:inviteError?.code,inviteErrorMsg:inviteError?.message,inviterId:invitation?.inviter_id,invitationStatus:invitation?.status},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:230',message:'invitation fetch result',data:{hasInvitation:!!invitation,inviteErrorCode:inviteError?.code,inviteErrorMsg:inviteError?.message,inviterId:invitation?.inviter_id,invitationStatus:invitation?.status,totalFound:invitations?.length},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
       // #endregion
 
       if (inviteError || !invitation) {
@@ -291,7 +294,7 @@ export function useInvitations() {
 
       if (partnershipError) throw partnershipError
 
-      // Update invitation status
+      // Update ALL invitations with this code to accepted (handles duplicates)
       await supabase
         .from('partner_invitations')
         .update({ 
@@ -299,7 +302,8 @@ export function useInvitations() {
           accepted_by: user.id,
           accepted_at: new Date().toISOString(),
         })
-        .eq('id', invitation.id)
+        .eq('code', code.toUpperCase())
+        .eq('status', 'pending')
 
       // #region agent log
       fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'usePartnership.ts:283',message:'SUCCESS - partnership created',data:{},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
