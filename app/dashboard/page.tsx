@@ -20,6 +20,7 @@ import { AcceptInviteModal } from "@/components/dashboard/accept-invite-modal"
 import {
   EmptyNoHabits,
   EmptyNoPartner,
+  EmptyNoSharedHabits,
   EmptyAllDone,
   EmptyNoPendingReviews,
 } from "@/components/dashboard/empty-states"
