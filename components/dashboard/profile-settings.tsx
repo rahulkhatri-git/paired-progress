@@ -16,6 +16,7 @@ import {
   Plus,
   LogOut,
   Loader2,
+  Trash2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -24,6 +25,7 @@ import { useAuth } from "@/lib/auth-context"
 import { usePartnership } from "@/lib/hooks/usePartnership"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
+import { DeleteAccountModal } from "./delete-account-modal"
 
 interface ProfileSettingsProps {
   onBack: () => void
@@ -42,6 +44,7 @@ export function ProfileSettings({ onBack }: ProfileSettingsProps) {
   const [forgivenessPerWeek, setForgivenessPerWeek] = useState(1)
   const [darkMode, setDarkMode] = useState(false)
   const [showPartnerPrivate, setShowPartnerPrivate] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   // Load profile settings from database
   useEffect(() => {
@@ -389,10 +392,32 @@ export function ProfileSettings({ onBack }: ProfileSettingsProps) {
                   Sign Out
                 </Button>
               </div>
+              <div className="border-t border-border/40 pt-3">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowDeleteModal(true)}
+                  className="gap-2 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Delete Account
+                </Button>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Permanently delete your account and all associated data. This cannot be undone.
+                </p>
+              </div>
             </div>
           </section>
         </div>
       </main>
+
+      {/* Delete Account Modal */}
+      <DeleteAccountModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        userEmail={user?.email || ""}
+        userId={user?.id || ""}
+      />
     </div>
   )
 }
