@@ -51,11 +51,21 @@ export function useHabitLogs(habitId?: string) {
     }
 
     try {
+      // Check if habit is shared to determine if review is needed
+      const { data: habitData } = await supabase
+        .from('habits')
+        .select('is_shared')
+        .eq('id', input.habit_id)
+        .single()
+
+      const requiresReview = habitData?.is_shared || false
+
       const { data, error } = await supabase
         .from('habit_logs')
         .insert({
           user_id: user.id,
           log_date: input.log_date || new Date().toISOString().split('T')[0],
+          requires_review: requiresReview,
           ...input,
         })
         .select()
