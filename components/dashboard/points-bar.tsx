@@ -34,10 +34,10 @@ export function PointsBar({
         <div className="flex items-center gap-1.5">
           <Trophy className="h-4 w-4 text-amber-500" />
           <span className="text-xs font-medium text-muted-foreground">
-            {youWinning
-              ? `You're ahead by ${diff}!`
-              : diff === 0
-                ? "Tied!"
+            {diff === 0
+              ? "Tied!"
+              : youWinning
+                ? `You're ahead by ${diff}!`
                 : `${partnerName} leads by ${diff}`}
           </span>
         </div>

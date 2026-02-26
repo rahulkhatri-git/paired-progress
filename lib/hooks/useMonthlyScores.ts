@@ -15,12 +15,13 @@ interface MonthlyScore {
 
 /**
  * Points calculation rules:
- * - Binary completion: 1 point
+ * - Binary completion: 3 points (same as gold tier)
  * - Bronze tier: 1 point
  * - Silver tier: 2 points
  * - Gold tier: 3 points
  * - 7-day streak: +3 bonus (calculated separately)
  * - Partner approval: +1 bonus
+ * - Partner challenge: -1 penalty
  */
 
 export function useMonthlyScores(partnerId?: string) {
@@ -64,14 +65,20 @@ export function useMonthlyScores(partnerId?: string) {
           } else if (log.tier_achieved === 'bronze') {
             totalPoints += 1
           } else {
-            // Binary completion
-            totalPoints += 1
+            // Binary completion = 3 points (same as gold)
+            totalPoints += 3
           }
         }
 
-        // Bonus point for partner approval
-        if (log.approved && log.reviewed_by) {
-          totalPoints += 1
+        // Bonus/penalty for partner review
+        if (log.reviewed_by) {
+          if (log.approved) {
+            // Approval bonus
+            totalPoints += 1
+          } else {
+            // Challenge penalty
+            totalPoints -= 1
+          }
         }
       })
 
