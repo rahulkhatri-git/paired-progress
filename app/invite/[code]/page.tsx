@@ -1,12 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { useInvitations } from "@/lib/hooks/usePartnership"
 
-export default function InvitePage({ params }: { params: { code: string } }) {
+export default function InvitePage() {
   const router = useRouter()
+  const params = useParams()
+  const code = params?.code as string | undefined
   const { user, loading: authLoading } = useAuth()
   const { acceptInvitation } = useInvitations()
   const [accepting, setAccepting] = useState(false)
@@ -14,13 +16,13 @@ export default function InvitePage({ params }: { params: { code: string } }) {
 
   useEffect(() => {
     // #region agent log
-    fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'invite/[code]/page.tsx:15',message:'useEffect entry',data:{code:params.code,authLoading,hasUser:!!user,userId:user?.id},timestamp:Date.now(),hypothesisId:'A,C,E'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'invite/[code]/page.tsx:15',message:'useEffect entry',data:{code,authLoading,hasUser:!!user,userId:user?.id},timestamp:Date.now(),hypothesisId:'A,C,E'})}).catch(()=>{});
     // #endregion
 
     // Check for invalid code
-    if (!params.code || params.code === 'undefined' || params.code.length < 6) {
+    if (!code || code === 'undefined' || code.length < 6) {
       // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'invite/[code]/page.tsx:18',message:'invalid code detected',data:{code:params.code,codeLength:params.code?.length},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'invite/[code]/page.tsx:18',message:'invalid code detected',data:{code,codeLength:code?.length},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
       // #endregion
       setError('Invalid invitation code. Please ask your partner for a new invite link.')
       return
@@ -36,9 +38,9 @@ export default function InvitePage({ params }: { params: { code: string } }) {
     // Not logged in - redirect to home with invite code in URL
     if (!user) {
       // #region agent log
-      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'invite/[code]/page.tsx:26',message:'redirect: no user',data:{redirectUrl:`/?invite=${params.code}`},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'invite/[code]/page.tsx:26',message:'redirect: no user',data:{redirectUrl:`/?invite=${code}`},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
       // #endregion
-      router.push(`/?invite=${params.code}`)
+      router.push(`/?invite=${code}`)
       // #region agent log
       fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'invite/[code]/page.tsx:27',message:'router.push called',data:{},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
       // #endregion
@@ -50,16 +52,16 @@ export default function InvitePage({ params }: { params: { code: string } }) {
     fetch('http://127.0.0.1:7505/ingest/332df1e0-c4c9-4bf4-912e-2754c0aa630c',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'41908d'},body:JSON.stringify({sessionId:'41908d',location:'invite/[code]/page.tsx:31',message:'calling handleAutoAccept',data:{userId:user.id},timestamp:Date.now(),hypothesisId:'A,C,E'})}).catch(()=>{});
     // #endregion
     handleAutoAccept()
-  }, [user, authLoading, params.code, router])
+  }, [user, authLoading, code, router])
 
   const handleAutoAccept = async () => {
-    if (accepting) return
+    if (accepting || !code) return
     
     setAccepting(true)
     setError(null)
 
     try {
-      const success = await acceptInvitation(params.code)
+      const success = await acceptInvitation(code)
       
       if (success) {
         // Refresh page to show partnership
