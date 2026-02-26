@@ -120,22 +120,17 @@ export function PartnerHabitCard({ habit, logs, partnerName, onReview }: Partner
         </div>
       )}
 
-      {/* Needs Review Badge + Button */}
+      {/* Review Available - Subtle Indicator */}
       {todayLog?.requires_review && !todayLog.reviewed_by && onReview && (
-        <div className="mt-3 space-y-2">
-          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-center">
-            <span className="text-xs font-semibold text-amber-700">
-              ⚠️ Needs Your Review
-            </span>
-          </div>
+        <div className="mt-3">
           <Button
             onClick={() => onReview(habit, todayLog)}
-            variant="outline"
+            variant="ghost"
             size="sm"
-            className="w-full gap-2 border-amber-500/30 text-amber-700 hover:bg-amber-500/10 hover:text-amber-800"
+            className="w-full gap-2 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
           >
-            <Eye className="h-4 w-4" />
-            Review Log
+            <Eye className="h-3.5 w-3.5" />
+            <span className="text-xs">Can Review</span>
           </Button>
         </div>
       )}
