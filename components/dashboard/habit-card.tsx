@@ -1,7 +1,6 @@
-"use client"
-
-import { History } from "lucide-react"
+import { History, AlertCircle } from "lucide-react"
 import { TierProgressBar } from "./tier-progress-bar"
+import type { HabitLog } from "@/lib/types/habits"
 
 interface HabitDay {
   day: string
@@ -24,13 +23,15 @@ export interface HabitCardData {
 
 interface HabitCardProps {
   habit: HabitCardData
+  todayLog?: HabitLog
+  partnerName?: string
   isPartner?: boolean
   onLog?: (id: string) => void
   onEdit?: (id: string) => void
   onViewHistory?: (id: string) => void
 }
 
-export function HabitCard({ habit, isPartner, onLog, onEdit, onViewHistory }: HabitCardProps) {
+export function HabitCard({ habit, todayLog, partnerName, isPartner, onLog, onEdit, onViewHistory }: HabitCardProps) {
   const completedGlow = habit.completed ? "ring-1 ring-primary/20 shadow-[0_0_12px_rgba(13,148,136,0.08)]" : ""
 
   return (
@@ -108,6 +109,36 @@ export function HabitCard({ habit, isPartner, onLog, onEdit, onViewHistory }: Ha
           <span className="text-sm text-muted-foreground">
             {habit.completed ? "Completed today" : "Not yet completed"}
           </span>
+        </div>
+      )}
+
+      {/* Challenge Status */}
+      {!isPartner && todayLog?.reviewed_by && !todayLog.approved && (
+        <div className="mt-3 rounded-lg border border-red-500/30 bg-red-500/5 p-3">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-semibold text-red-700">
+                ⚠️ Challenged by {partnerName || 'Partner'}
+              </div>
+              {todayLog.rejection_reason && (
+                <p className="mt-1 text-xs text-red-600 break-words">
+                  "{todayLog.rejection_reason}"
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Approval Status */}
+      {!isPartner && todayLog?.reviewed_by && todayLog.approved && (
+        <div className="mt-3 rounded-lg border border-green-500/30 bg-green-500/5 p-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-green-700">
+              ✓ Approved by {partnerName || 'Partner'} (+1 pt bonus)
+            </span>
+          </div>
         </div>
       )}
 

@@ -171,6 +171,29 @@ export function LogHistoryModal({ open, onOpenChange, habitId }: LogHistoryModal
                           </div>
                         )}
 
+                        {/* Partner Review Status */}
+                        {log.reviewed_by && (
+                          <div className={`mt-2 rounded-lg border p-2 ${
+                            log.approved
+                              ? 'border-green-500/30 bg-green-500/5'
+                              : 'border-red-500/30 bg-red-500/5'
+                          }`}>
+                            <div className="text-xs font-semibold ${log.approved ? 'text-green-700' : 'text-red-700'}">
+                              {log.approved ? '✓ Approved by Partner' : '⚠️ Challenged by Partner'}
+                            </div>
+                            {!log.approved && log.rejection_reason && (
+                              <p className="mt-1 text-xs text-red-600">
+                                Reason: "{log.rejection_reason}"
+                              </p>
+                            )}
+                            {log.approved && (
+                              <p className="mt-1 text-xs text-green-600">
+                                +1 point bonus awarded
+                              </p>
+                            )}
+                          </div>
+                        )}
+
                         {/* Note */}
                         {log.note && (
                           <div className="rounded-lg bg-muted/50 p-2">

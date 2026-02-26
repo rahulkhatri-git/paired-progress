@@ -175,6 +175,59 @@ export function useMonthlyScores(partnerId?: string) {
     fetchScores()
   }, [user?.id, partnerId])
 
+  // Subscribe to real-time updates on habit_logs for immediate score refresh
+  useEffect(() => {
+    if (!user) return
+
+    const channel = supabase
+      .channel('habit_logs_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'habit_logs',
+          filter: `user_id=eq.${user.id}`, // Only user's own logs
+        },
+        (payload) => {
+          console.log('Habit log changed:', payload)
+          // Refetch scores when logs change
+          fetchScores()
+        }
+      )
+      .subscribe()
+
+    // Also listen to partner's logs if they challenge/approve
+    if (partnerId) {
+      const partnerChannel = supabase
+        .channel('partner_logs_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'habit_logs',
+            filter: `user_id=eq.${partnerId}`, // Partner's logs
+          },
+          (payload) => {
+            console.log('Partner log changed:', payload)
+            // Refetch scores when partner's logs change
+            fetchScores()
+          }
+        )
+        .subscribe()
+
+      return () => {
+        supabase.removeChannel(channel)
+        supabase.removeChannel(partnerChannel)
+      }
+    }
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [user?.id, partnerId])
+
   return {
     userScore,
     partnerScore,

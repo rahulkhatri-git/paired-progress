@@ -140,8 +140,8 @@ export default function DashboardPage() {
   const weekDates = getWeekDates(weekOffset)
   const today = new Date().toISOString().split('T')[0]
 
-  // Transform habits into HabitCardData format
-  const YOUR_HABITS: HabitCardData[] = habits.map((habit) => {
+  // Transform habits into HabitCardData format with today's log info
+  const YOUR_HABITS: (HabitCardData & { todayLog?: HabitLog })[] = habits.map((habit) => {
     const todayLog = logs.find((log) => log.habit_id === habit.id && log.log_date === today)
     const weekLogs = logs.filter((log) => 
       log.habit_id === habit.id && weekDates.includes(log.log_date)
@@ -163,6 +163,7 @@ export default function DashboardPage() {
         emoji: '✓',
         completed: !!todayLog?.completed,
         days,
+        todayLog,
       }
     } else {
       return {
@@ -177,6 +178,7 @@ export default function DashboardPage() {
         emoji: '🎯',
         completed: !!todayLog,
         days,
+        todayLog,
       }
     }
   })
@@ -273,10 +275,12 @@ export default function DashboardPage() {
               <EmptyNoHabits onCreateHabit={() => setCreateHabitOpen(true)} />
             ) : (
               <div className={`grid gap-3 ${partnerSectionCollapsed ? "md:grid-cols-2 lg:grid-cols-3" : ""}`}>
-                {YOUR_HABITS.map((habit) => (
+                {YOUR_HABITS.map((habitData) => (
                   <HabitCard 
-                    key={habit.id} 
-                    habit={habit} 
+                    key={habitData.id} 
+                    habit={habitData} 
+                    todayLog={habitData.todayLog}
+                    partnerName={partner?.full_name?.split(' ')[0]}
                     onLog={handleLog} 
                     onEdit={handleEdit}
                     onViewHistory={handleViewHistory}
