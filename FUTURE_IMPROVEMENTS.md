@@ -1,5 +1,44 @@
 # Future Improvements & Ideas
 
+## Phase 3: Performance & UX Polish
+
+### Performance Optimizations
+
+#### React.memo for Component Re-renders
+**Priority:** Medium  
+**Status:** Deferred from Phase 2  
+**Effort:** ~30 minutes
+
+**Problem:**
+- Real-time updates cause entire dashboard to re-render
+- PointsBar, HabitCard, and PartnerHabitCard re-render even when their data hasn't changed
+- Visible flash/flicker on updates (5-10 habits = fine, but 20+ would be noticeable)
+
+**Solution:**
+```typescript
+// Wrap components in React.memo with custom comparison
+export const PointsBar = React.memo(({ yourName, yourPoints, partnerName, partnerPoints }) => {
+  // ...
+}, (prevProps, nextProps) => {
+  return prevProps.yourPoints === nextProps.yourPoints && 
+         prevProps.partnerPoints === nextProps.partnerPoints
+})
+
+export const HabitCard = React.memo(HabitCardComponent, (prev, next) => {
+  return prev.habit.id === next.habit.id && 
+         prev.todayLog?.reviewed_by === next.todayLog?.reviewed_by &&
+         prev.todayLog?.approved === next.todayLog?.approved
+})
+```
+
+**Impact:**
+- Only updated components re-render
+- Smoother real-time updates
+- Better perceived performance
+- Especially noticeable with 15+ habits
+
+---
+
 ## High Priority
 
 ### Email Invitations
