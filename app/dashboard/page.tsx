@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Plus } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { PointsBar } from "@/components/dashboard/points-bar"
 import { HabitCard } from "@/components/dashboard/habit-card"
@@ -119,6 +120,58 @@ export default function DashboardPage() {
       router.push("/")
     }
   }, [user, authLoading, router])
+
+  // Real-time updates for partner actions
+  useEffect(() => {
+    if (!user || !partner?.id) return
+
+    const supabase = createClient()
+    
+    // Subscribe to partner's habit log changes (for review updates)
+    const channel = supabase
+      .channel('partner_habit_logs_realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'habit_logs',
+          filter: `user_id=eq.${user.id}`, // Listen to changes on YOUR logs (partner reviewing them)
+        },
+        (payload) => {
+          console.log('Real-time: Your log reviewed by partner', payload.eventType)
+          // Refresh your own logs to show challenge/approval status
+          refetchLogs()
+          refetchScores()
+        }
+      )
+      .subscribe()
+
+    // Subscribe to partner's logs (when they log/update habits you're viewing)
+    const partnerChannel = supabase
+      .channel('partner_logs_realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'habit_logs',
+          filter: `user_id=eq.${partner.id}`, // Listen to partner's logs
+        },
+        (payload) => {
+          console.log('Real-time: Partner logged a habit', payload.eventType)
+          // Refresh partner habits and logs
+          refetchPartnerHabits()
+          refetchScores()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+      supabase.removeChannel(partnerChannel)
+    }
+  }, [user, partner?.id, refetchLogs, refetchPartnerHabits, refetchScores])
 
   // Show loading while auth is being checked
   if (authLoading) {
